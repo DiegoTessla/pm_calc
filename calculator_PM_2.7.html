@@ -553,6 +553,12 @@
                 </div>
             </div>
         </div>
+
+        <!-- Новый чекбокс для бота -->
+        <div class="checkbox-group" style="margin-top:12px;">
+            <input type="checkbox" id="botBroken">
+            <label for="botBroken" class="label-text">🤖 Бот не работает (использовать ✨вопросы-старшим-и-пожелания)</label>
+        </div>
     </div>
 
     <!-- Карточка действий -->
@@ -962,6 +968,14 @@
                 html += `<div class="progress"><div class="fill" style="width:${vacPct}%;"></div></div>`;
                 html += `</div>`;
 
+                // Добавляем индикацию канала
+                const botBroken = document.getElementById('botBroken').checked;
+                const channelStatus = botBroken ? '🔴 Резервный канал (бот не работает)' : '🟢 Основной канал (бот работает)';
+                html += `<div class="report-category" style="border-left-color:#ffd700;">
+                            <span class="label">🤖 Статус бота</span>
+                            <span class="value">${channelStatus}</span>
+                        </div>`;
+
                 html += `<div class="report-total">🏆 ИТОГОВЫЙ БАЛЛ: <span>${s.points}</span></div>`;
 
                 if (verdictOk) {
@@ -988,6 +1002,12 @@
             const s = calc();
             const isWeekly = promo.value === "Недельный отчет";
             const totalBodi = getTotalBodi();
+
+            // Получаем состояние бота
+            const botBroken = document.getElementById('botBroken').checked;
+            const channelLink = botBroken 
+                ? 'https://discord.com/channels/1482048390119555123/1482048392912703503' 
+                : 'https://discord.com/channels/1482048390119555123/1518676182885863437';
 
             if (isWeekly) {
                 const staticId = static.value.trim();
@@ -1131,7 +1151,7 @@
             if (verdictOk) {
                 reportLines.push('# :white_check_mark: ОТЧЁТ ОДОБРЕН #');
                 reportLines.push('');
-                reportLines.push('*Для повышения на ' + (promo.value.split("→")[1] || "") + ' ранг заполните заявление на повышение в канале* https://discord.com/channels/1482048390119555123/1518676182885863437');
+                reportLines.push('*Для повышения на ' + (promo.value.split("→")[1] || "") + ' ранг заполните заявление на повышение в канале* ' + channelLink);
             } else {
                 reportLines.push('# :x: ОТЧЁТ ОТКЛОНЁН #');
                 reportLines.push('');
@@ -1187,6 +1207,7 @@
             exam.checked = false;
             penalty13.checked = false;
             penalty23.checked = false;
+            document.getElementById('botBroken').checked = false;
             [...tb.rows].forEach(row => {
                 const tInput = row.querySelector(".t");
                 const rInput = row.querySelector(".r");
@@ -1224,6 +1245,7 @@
             document.getElementById('exam').addEventListener('change', renderDashboard);
             document.getElementById('penalty13').addEventListener('change', renderDashboard);
             document.getElementById('penalty23').addEventListener('change', renderDashboard);
+            document.getElementById('botBroken').addEventListener('change', renderDashboard);
             document.getElementById('remarks').addEventListener('input', function() {
                 syncRemarkButtons();
                 renderDashboard();
