@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Калькулятор отчетов PM</title>
+    <style>
+        /* ---------- Общие стили ---------- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #0a1929;
+            color: #e8f0fe;
+            padding: 24px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        body::before {
+            content: "⚕ PARAMEDIC DEPARTMENT";
+            display: block;
+            font-size: 32px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 20px;
+            color: #b3d9ff;
+            letter-spacing: 3px;
+            text-shadow: 0 0 20px rgba(179, 217, 255, 0.15);
+            animation: glowPulse 3s infinite alternate;
+        }
+        @keyframes glowPulse {
+            0% { text-shadow: 0 0 10px rgba(179, 217, 255, 0.1); }
+            100% { text-shadow: 0 0 30px rgba(179, 217, 255, 0.4); }
+        }
+
+        /* ---------- Карточки ---------- */
+        .card {
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(179, 217, 255, 0.15);
+            border-radius: 20px;
+            padding: 20px 24px;
+            margin: 14px 0;
+            width: 100%;
+            max-width: 1100px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            transition: transform 0.25s ease, box-shadow 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7);
+        }
+        h1 { display: none; }
+        h2 {
+            color: #b3d9ff;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            margin-top: 0;
+            margin-bottom: 16px;
+            border-bottom: 1px solid rgba(179, 217, 255, 0.1);
+            padding-bottom: 8px;
+        }
+
+        /* ---------- Сетка и поля ввода ---------- */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(179, 217, 255, 0.25);
+            background: rgba(255, 255, 255, 0.05);
+            color: #e8f0fe;
+            font-size: 1rem;
+            transition: border-color 0.3s, box-shadow 0.3s, background 0.3s;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #8cc4ff;
+            box-shadow: 0 0 0 3px rgba(140, 196, 255, 0.2);
+            background: rgba(255, 255, 255, 0.08);
+        }
+        input::placeholder {
+            color: #8899aa;
+        }
+
+        /* ---------- Выпадающий список ---------- */
+        select {
+            appearance: none;
+            -webkit-appearance: none;
+            background-color: #0a1929 !important;
+            color: #b3d9ff !important;
+            border: 1px solid rgba(179, 217, 255, 0.3);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23b3d9ff' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            padding-right: 40px;
+            cursor: pointer;
+        }
+        select option {
+            background: #0a1929 !important;
+            color: #b3d9ff !important;
+            padding: 8px 12px;
+        }
+        select option:hover,
+        select option:checked {
+            background: #1a2f44 !important;
+            color: #ffffff !important;
+        }
+
+        /* ---------- Кастомные чекбоксы ---------- */
+        input[type="checkbox"] {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            min-width: 20px;
+            border: 2px solid rgba(179, 217, 255, 0.4);
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s ease;
+            margin-right: 8px;
+            flex-shrink: 0;
+        }
+        input[type="checkbox"]:checked {
+            background: #5fa8ff;
+            border-color: #5fa8ff;
+        }
+        input[type="checkbox"]:checked::after {
+            content: "✓";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 700;
+            line-height: 1;
+        }
+        input[type="checkbox"]:hover {
+            border-color: #8cc4ff;
+            box-shadow: 0 0 8px rgba(140, 196, 255, 0.3);
+        }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin: 6px 0;
+            color: #c0d8f0;
+            cursor: pointer;
+        }
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            gap: 4px;
+        }
+        .checkbox-group .label-text {
+            user-select: none;
+        }
+        .penalty-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 20px 30px;
+            margin-top: 8px;
+        }
+        .penalty-row .checkbox-group {
+            margin: 0;
+        }
+
+        /* ---------- Кнопки-замечания (улучшенная верстка) ---------- */
+        .remark-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 8px;
+            margin: 10px 0 6px 0;
+        }
+        .remark-btn {
+            padding: 6px 12px;
+            border: 1px solid rgba(179, 217, 255, 0.3);
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #c0d8f0;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            white-space: normal;
+            word-break: break-word;
+        }
+        .remark-btn:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: #8cc4ff;
+            color: #ffffff;
+        }
+        .remark-btn.active {
+            background: rgba(95, 168, 255, 0.2);
+            border-color: #5fa8ff;
+            color: #8cc4ff;
+        }
+
+        /* ---------- Скрытие элемента ---------- */
+        .hidden {
+            display: none !important;
+        }
+
+        /* ---------- Таблица ---------- */
+        .table-wrapper {
+            overflow-x: auto;
+            margin: 6px 0;
+        }
+        table {
+            width: 100%;
+            min-width: 700px;
+            border-collapse: separate;
+            border-spacing: 0 6px;
+        }
+        th {
+            color: #b3d9ff;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+            padding: 8px 10px;
+            text-align: left;
+            white-space: nowrap;
+        }
+        td {
+            padding: 8px 10px;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 8px;
+            color: #e8f0fe;
+        }
+        tbody tr {
+            transition: background 0.2s;
+        }
+        tbody tr:hover td {
+            background: rgba(255, 255, 255, 0.08);
+        }
+        tbody tr td:first-child {
+            border-radius: 10px 0 0 10px;
+        }
+        tbody tr td:last-child {
+            border-radius: 0 10px 10px 0;
+        }
+        .error {
+            outline: 2px solid #ff6b6b;
+            outline-offset: -1px;
+            border-radius: 8px;
+        }
+        .error td {
+            background: rgba(255, 80, 80, 0.12) !important;
+        }
+
+        /* Стиль для поля "Без боди" */
+        .bodi-input {
+            width: 60px;
+            padding: 6px 8px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(179, 217, 255, 0.25);
+            border-radius: 8px;
+            color: #e8f0fe;
+            font-size: 0.95rem;
+        }
+        .bodi-input:focus {
+            border-color: #8cc4ff;
+            box-shadow: 0 0 0 3px rgba(140, 196, 255, 0.2);
+            outline: none;
+        }
+
+        /* ---------- Прогресс-бары ---------- */
+        .progress {
+            height: 22px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 999px;
+            overflow: hidden;
+            margin: 4px 0 12px;
+            box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.4);
+        }
+        .fill {
+            height: 100%;
+            background: linear-gradient(90deg, #5fa8ff, #8cc4ff);
+            border-radius: 999px;
+            transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+            width: 0%;
+            box-shadow: 0 0 12px rgba(140, 196, 255, 0.3);
+            animation: fillPulse 2s infinite alternate;
+        }
+        @keyframes fillPulse {
+            0% { opacity: 0.9; }
+            100% { opacity: 1; }
+        }
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            color: #c0d8f0;
+            font-size: 0.9rem;
+            margin-bottom: 2px;
+        }
+        .progress-label .val {
+            color: #ffffff;
+            font-weight: 500;
+        }
+
+        /* ---------- Кнопки ---------- */
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 40px;
+            background: linear-gradient(135deg, #5fa8ff, #3d7ec9);
+            color: #ffffff;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 14px rgba(95, 168, 255, 0.25);
+            letter-spacing: 0.3px;
+            margin-right: 10px;
+            margin-bottom: 8px;
+        }
+        button:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 28px rgba(95, 168, 255, 0.4);
+            background: linear-gradient(135deg, #70b4ff, #4a8ad9);
+        }
+        button:active {
+            transform: translateY(0) scale(0.98);
+        }
+        /* Анимация для кнопки копирования при успехе */
+        button.copy-success {
+            background: linear-gradient(135deg, #19c37d, #15a067) !important;
+            box-shadow: 0 4px 20px rgba(25, 195, 125, 0.5) !important;
+            transform: scale(1.05);
+        }
+
+        /* ---------- Текстовое поле для отчёта ---------- */
+        textarea#out {
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(179, 217, 255, 0.15);
+            color: #e0ecf9;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            padding: 14px;
+            border-radius: 14px;
+            margin-top: 20px;
+            resize: vertical;
+            width: 100%;
+            min-height: 120px;
+        }
+
+        /* ---------- Дашборд ---------- */
+        #visualReport {
+            margin-top: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(8px);
+            border-radius: 24px;
+            padding: 24px;
+            border: 1px solid rgba(179, 217, 255, 0.12);
+            animation: dashSlideUp 0.3s ease;
+            transition: all 0.2s;
+        }
+        @keyframes dashSlideUp {
+            0% { opacity: 0; transform: translateY(10px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(179, 217, 255, 0.1);
+        }
+        .report-header .name {
+            font-size: 1.6rem;
+            font-weight: 600;
+            color: #ffffff;
+        }
+        .report-header .static {
+            font-size: 1rem;
+            color: #b0cce8;
+            background: rgba(255, 255, 255, 0.06);
+            padding: 4px 16px;
+            border-radius: 40px;
+        }
+        .report-category {
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 14px;
+            padding: 16px 20px;
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 3px solid #8cc4ff;
+            transition: background 0.2s;
+        }
+        .report-category:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+        .report-category .label {
+            font-size: 1rem;
+            color: #c0d8f0;
+        }
+        .report-category .value {
+            font-weight: 600;
+            font-size: 1.2rem;
+            color: #ffffff;
+        }
+        .report-total {
+            font-size: 1.8rem;
+            font-weight: 700;
+            text-align: center;
+            padding: 16px;
+            margin: 16px 0;
+            background: rgba(140, 196, 255, 0.08);
+            border-radius: 16px;
+            border: 1px solid rgba(140, 196, 255, 0.15);
+        }
+        .report-total span {
+            color: #8cc4ff;
+        }
+        .report-errors {
+            background: rgba(255, 107, 107, 0.08);
+            border-radius: 14px;
+            padding: 16px 20px;
+            margin: 10px 0;
+            border-left: 3px solid #ff6b6b;
+        }
+        .report-errors .label {
+            color: #ff6b6b;
+            font-weight: 500;
+            margin-bottom: 6px;
+        }
+        .report-errors ul {
+            margin: 0;
+            padding-left: 20px;
+            color: #ffb3b3;
+        }
+        .report-errors li {
+            margin: 4px 0;
+        }
+        .report-ok {
+            background: rgba(111, 207, 151, 0.08);
+            border-radius: 14px;
+            padding: 16px 20px;
+            margin: 10px 0;
+            border-left: 3px solid #6fcf97;
+            color: #6fcf97;
+            font-weight: 500;
+            text-align: center;
+        }
+        .report-remarks {
+            margin-top: 16px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 14px;
+            border: 1px solid rgba(179, 217, 255, 0.06);
+            color: #b0cce8;
+            font-style: italic;
+        }
+        .report-remarks strong {
+            color: #c0d8f0;
+            font-style: normal;
+        }
+
+        /* ---------- Адаптив ---------- */
+        @media (max-width: 768px) {
+            body { padding: 16px; }
+            .card { padding: 16px; }
+            .report-header .name { font-size: 1.3rem; }
+            .report-total { font-size: 1.5rem; }
+            .grid { grid-template-columns: 1fr 1fr; }
+            .remark-buttons { grid-template-columns: 1fr 1fr; }
+            table { min-width: 500px; }
+        }
+        @media (max-width: 500px) {
+            body { padding: 10px; }
+            .card { padding: 12px; }
+            .grid { grid-template-columns: 1fr; }
+            .remark-buttons { grid-template-columns: 1fr; }
+            .report-header .name { font-size: 1.1rem; }
+            .report-total { font-size: 1.2rem; }
+            button { width: 100%; margin-right: 0; }
+            .bodi-input { width: 50px; }
+            table { min-width: 400px; }
+        }
+        @media (max-width: 400px) {
+            table { min-width: 300px; }
+            th, td { padding: 6px 6px; font-size: 0.8rem; }
+            .bodi-input { width: 40px; padding: 4px; }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Калькулятор повышения сотрудников отдела Paramedic</h1>
+
+    <!-- Карточка сотрудника -->
+    <div class="card">
+        <h2>👤 Сотрудник</h2>
+        <div class="grid">
+            <input id="fullname" placeholder="Имя Фамилия">
+            <input id="static" placeholder="Статик">
+            <!-- Контейнер для выслуги лет (скрыт по умолчанию) -->
+            <div id="seniority-group" class="hidden">
+                <input id="seniority" placeholder="Выслуга лет">
+            </div>
+            <select id="promo">
+                <option value="3→4" selected>3→4</option>
+                <option>4→5</option>
+                <option>5→6</option>
+                <option>6→7</option>
+                <option>7→8</option>
+                <option>8→9</option>
+                <option>Недельный отчет</option>
+            </select>
+        </div>
+
+        <!-- Тема экзамена -->
+        <div id="exam-topic-group">
+            <p><b>📖 Тема экзамена:</b> <span id="topic">Отравление</span></p>
+        </div>
+
+        <!-- Чекбокс экзамена -->
+        <div id="exam-checkbox-group" class="checkbox-group">
+            <input type="checkbox" id="exam">
+            <label for="exam" class="label-text">✅ Экзамен сдан</label>
+        </div>
+
+        <!-- Взыскания -->
+        <div id="penalty-group" style="margin-top:12px;">
+            <b>⚠️ Взыскания:</b>
+            <div class="penalty-row">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="penalty13">
+                    <label for="penalty13" class="label-text">🔴 1/3</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="penalty23">
+                    <label for="penalty23" class="label-text">🔴 2/3</label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Карточка действий -->
+    <div class="card">
+        <h2>📋 Действия</h2>
+        <div class="table-wrapper">
+            <table id="tbl">
+                <thead>
+                    <tr>
+                        <th>Действие</th>
+                        <th>Заявлено</th>
+                        <th>Не принято</th>
+                        <th>Без боди</th>
+                        <th>Принято</th>
+                        <th>Баллы</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <div style="margin-top:10px; color:#b0cce8; font-size:0.85rem;">
+            <i>📌 В столбце «Без боди» укажите количество скриншотов без боди-камеры для каждого действия. Если суммарно наберется более 5, отчет будет отклонен с замечанием.</i>
+        </div>
+    </div>
+
+    <!-- Карточка замен и замечаний -->
+    <div class="card">
+        <h2>🔄 Замены</h2>
+        <!-- Сетка замен (скрывается для недельного отчета) -->
+        <div id="replacements-grid" class="grid">
+            <div><label>💉 Вакцины → 🚑 ПМП</label><input id="vacToPmp" type="number" value="0" min="0"></div>
+            <div><label>🚑 ПМП → 💉 Вакцины (5 ПМП = 1 вакцина)</label><input id="pmpToVac" type="number" value="0" min="0"></div>
+            <div><label>⭐ Доп. баллы</label><input id="extra" type="number" value="0"></div>
+        </div>
+
+        <div style="margin-top:10px">
+            <label>📝 Замечания</label>
+            <textarea id="remarks" rows="4"></textarea>
+        </div>
+
+        <!-- Кнопки-замечания -->
+        <div style="margin-top:8px;">
+            <div style="color:#b0cce8; font-size:0.9rem; margin-bottom:6px;">🔖 Быстрые замечания:</div>
+            <div class="remark-buttons" id="remarkButtons">
+                <button type="button" class="remark-btn" data-text="- ПМП выполненные на территории больниц и в палатах в зачет нормы не идут">🏥 ПМП в больницах</button>
+                <button type="button" class="remark-btn" data-text="- При заполнении отчета не трогайте не задействованные строчки (не нужно ставить прочерки)">📄 Не трогать строчки</button>
+                <button type="button" class="remark-btn" data-text="- В последующих отчетах разделяйте ПМП сделанные в дневное и ночное время в разные папки">📁 Разделять ПМП</button>
+                <button type="button" class="remark-btn" data-text="- Выдача таблеток в зачет не идёт">💊 Таблетки не в зачет</button>
+                <button type="button" class="remark-btn" data-text="- Скриншоты, сделанные до вашего последнего повышения, в зачет не идут">📸 Скриншоты до повышения</button>
+                <button type="button" class="remark-btn" data-text="- Много ПМП выполнено с выключенной боди-камерой">🎥 Без боди-камеры</button>
+                <button type="button" class="remark-btn" data-text="- Когда делаете скриншот вакцины делайте в кабинете, не выходя в коридор">💉 Скриншот вне кабинета</button>
+                <button type="button" class="remark-btn" data-text="- Прикрепите ссылку на сданный устный экзамен">📚 Нет экзамена</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Карточка отчёта -->
+    <div class="card">
+        <div style="margin-bottom:10px;">
+            <button type="button" onclick="generateFullReport(event)">📄 Сформировать отчёт</button>
+            <button type="button" id="copyBtn" onclick="copyReport(event)">📋 Копировать отчёт</button>
+            <button type="button" onclick="resetForm(event)">🔄 Сбросить</button>
+        </div>
+
+        <!-- Дашборд -->
+        <div id="visualReport"></div>
+
+        <!-- Текстовое поле для копирования -->
+        <textarea id="out" rows="18"></textarea>
+    </div>
+
+    <script>
+        // === Данные ===
+        const actionsFull = [
+            ["☀️ ПМП день", 2],
+            ["🌙 ПМП ночь", 3],
+            ["🚫 Отмена вызова", 1],
+            ["💊 Выдача таблеток", 1],
+            ["🏙️ Вакцинация город", 3],
+            ["🌍 Вакцинация округ", 4],
+            ["📋 Медицинские справки", 3]
+        ];
+
+        const actionsPromo = [
+            ["☀️ ПМП день", 2],
+            ["🌙 ПМП ночь", 3],
+            ["🚫 Отмена вызова", 1],
+            ["🏙️ Вакцинация город", 3],
+            ["🌍 Вакцинация округ", 4],
+            ["📋 Медицинские справки", 3]
+        ];
+
+        const norms = {
+            "3→4": { points: 0, pmp: 40, vac: 0, topic: "Отравление" },
+            "4→5": { points: 0, pmp: 60, vac: 5, topic: "Растяжение / Вывих" },
+            "5→6": { points: 275, pmp: 85, vac: 10, topic: "Кровотечение / Перелом" },
+            "6→7": { points: 355, pmp: 110, vac: 15, topic: "Регламент выдачи мед справок" },
+            "7→8": { points: 435, pmp: 135, vac: 20, topic: "Утопление" },
+            "8→9": { points: 515, pmp: 160, vac: 25, topic: "Тепловой / Солнечный удар" },
+            "Недельный отчет": { points: 300, pmp: 0, vac: 0, topic: "—" }
+        };
+
+        // === Инициализация таблицы ===
+        const tb = document.querySelector("#tbl tbody");
+        let currentActions = actionsPromo;
+
+        function renderTable(isWeekly) {
+            currentActions = isWeekly ? actionsFull : actionsPromo;
+            tb.innerHTML = '';
+
+            // Для недельного отчета добавляем строку "Доп. баллы"
+            const actionsToRender = isWeekly ? [...currentActions, ["⭐ Доп. баллы (введите количество)", 1]] : currentActions;
+
+            actionsToRender.forEach((a, i) => {
+                const isExtraRow = isWeekly && i === currentActions.length;
+                tb.insertAdjacentHTML("beforeend",
+                    `<tr data-i="${i}" data-extra="${isExtraRow ? 'true' : 'false'}">
+                        <td>${a[0]}</td>
+                        <td>${isExtraRow ? `<input type="number" value="0" class="t-extra" min="0" style="width:80px;">` : `<input type="number" value="0" class="t" min="0">`}</td>
+                        <td>${isExtraRow ? '—' : `<input type="number" value="0" class="r" min="0">`}</td>
+                        <td>${isExtraRow ? '—' : `<input type="number" value="0" class="bodi-input" data-row="${i}" min="0" style="width:60px; text-align:center;">`}</td>
+                        <td class="acc">0</td>
+                        <td class="pts">0</td>
+                    </tr>`
+                );
+            });
+
+            // Подписываем события на все поля ввода таблицы
+            document.querySelectorAll('#tbl input').forEach(input => {
+                input.addEventListener('input', function() {
+                    updateBodiRemarks();
+                    calcAndRender();
+                });
+                input.addEventListener('change', function() {
+                    updateBodiRemarks();
+                    calcAndRender();
+                });
+            });
+            // Отдельно подписываем боди-поля
+            document.querySelectorAll('.bodi-input').forEach(input => {
+                input.addEventListener('input', function() {
+                    updateBodiRemarks();
+                    calcAndRender();
+                });
+            });
+        }
+
+        // === Функция пересчета и рендера (вызывается при любом изменении) ===
+        function calcAndRender() {
+            updateTableCalculations();
+            renderDashboard();
+        }
+
+        // === Обновление расчетов в таблице (принято, баллы) ===
+        function updateTableCalculations() {
+            const isWeekly = document.getElementById('promo').value === 'Недельный отчет';
+            const actions = isWeekly ? actionsFull : actionsPromo;
+
+            [...tb.rows].forEach((row, i) => {
+                const isExtraRow = row.dataset.extra === 'true';
+
+                if (isExtraRow) {
+                    // Для строки "Доп. баллы" просто показываем введённое значение
+                    const extraVal = +row.querySelector(".t-extra").value || 0;
+                    row.querySelector(".acc").textContent = extraVal;
+                    row.querySelector(".pts").textContent = extraVal;
+                    return;
+                }
+
+                let t = +row.querySelector(".t").value || 0;
+                let r = +row.querySelector(".r").value || 0;
+                row.classList.toggle("error", r > t);
+                let a = t - r;
+                if (a < 0) a = 0;
+                let p = a * actions[i][1];
+                row.querySelector(".acc").textContent = a;
+                row.querySelector(".pts").textContent = p;
+            });
+        }
+
+        // === Управление видимостью выслуги лет ===
+        function toggleSeniority() {
+            const promo = document.getElementById('promo');
+            const group = document.getElementById('seniority-group');
+            if (promo.value === 'Недельный отчет') {
+                group.classList.remove('hidden');
+            } else {
+                group.classList.add('hidden');
+                document.getElementById('seniority').value = '';
+            }
+        }
+
+        // === Управление видимостью элементов для недельного отчета ===
+        function toggleWeeklyView() {
+            const isWeekly = document.getElementById('promo').value === 'Недельный отчет';
+
+            document.getElementById('exam-topic-group').style.display = isWeekly ? 'none' : '';
+            document.getElementById('exam-checkbox-group').style.display = isWeekly ? 'none' : '';
+            document.getElementById('penalty-group').style.display = isWeekly ? 'none' : '';
+            document.getElementById('replacements-grid').style.display = isWeekly ? 'none' : '';
+
+            if (isWeekly) {
+                document.getElementById('exam').checked = false;
+                document.getElementById('penalty13').checked = false;
+                document.getElementById('penalty23').checked = false;
+                document.getElementById('vacToPmp').value = 0;
+                document.getElementById('pmpToVac').value = 0;
+                document.getElementById('extra').value = 0;
+            }
+
+            renderTable(isWeekly);
+            updateBodiRemarks();
+            calcAndRender();
+        }
+
+        document.getElementById('promo').addEventListener('change', function() {
+            toggleSeniority();
+            toggleWeeklyView();
+            document.getElementById('topic').textContent = norms[this.value]?.topic || "—";
+        });
+
+        // === Подсчет общего количества скриншотов без боди ===
+        function getTotalBodi() {
+            let total = 0;
+            document.querySelectorAll('.bodi-input').forEach(inp => {
+                total += +inp.value || 0;
+            });
+            return total;
+        }
+
+        // === Обновление замечаний на основе боди-значений ===
+        function updateBodiRemarks() {
+            const total = getTotalBodi();
+            const remarks = document.getElementById('remarks');
+            let lines = remarks.value.split('\n').filter(line => line.trim() !== '');
+            const pattern = /^- Сделано \d+ скриншотов? без боди-камеры.*$/i;
+            const existingIndex = lines.findIndex(line => pattern.test(line.trim()));
+
+            if (total > 5) {
+                const newLine = `- Сделано ${total} скриншотов без боди-камеры`;
+                if (existingIndex !== -1) {
+                    lines[existingIndex] = newLine;
+                } else {
+                    lines.push(newLine);
+                }
+            } else {
+                if (existingIndex !== -1) {
+                    lines.splice(existingIndex, 1);
+                }
+            }
+            remarks.value = lines.join('\n');
+            remarks.dispatchEvent(new Event('input'));
+        }
+
+        // === Обработка кнопок-замечаний ===
+        document.querySelectorAll('.remark-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const text = this.dataset.text;
+                const remarks = document.getElementById('remarks');
+                let lines = remarks.value.split('\n').filter(line => line.trim() !== '');
+                if (!lines.includes(text)) {
+                    lines.push(text);
+                    remarks.value = lines.join('\n');
+                    this.classList.add('active');
+                } else {
+                    lines = lines.filter(line => line !== text);
+                    remarks.value = lines.join('\n');
+                    this.classList.remove('active');
+                }
+                remarks.dispatchEvent(new Event('input'));
+                calcAndRender();
+            });
+        });
+
+        function syncRemarkButtons() {
+            const remarksText = document.getElementById('remarks').value;
+            document.querySelectorAll('.remark-btn').forEach(btn => {
+                const text = btn.dataset.text;
+                if (remarksText.includes(text)) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+        document.getElementById('remarks').addEventListener('input', syncRemarkButtons);
+
+        // === Основная функция расчёта ===
+        function calc() {
+            const isWeekly = document.getElementById('promo').value === 'Недельный отчет';
+            const actions = isWeekly ? actionsFull : actionsPromo;
+            let points = 0,
+                pmp = 0,
+                vac = 0,
+                error = false;
+
+            [...tb.rows].forEach((row, i) => {
+                const isExtraRow = row.dataset.extra === 'true';
+
+                if (isExtraRow) {
+                    // Доп. баллы
+                    const extraVal = +row.querySelector(".t-extra").value || 0;
+                    points += extraVal;
+                    return;
+                }
+
+                let t = +row.querySelector(".t").value || 0;
+                let r = +row.querySelector(".r").value || 0;
+                if (r > t) error = true;
+                let a = t - r;
+                if (a < 0) a = 0;
+                let p = a * actions[i][1];
+                points += p;
+                if (isWeekly) {
+                    if (i === 0 || i === 1) pmp += a;
+                    if (i === 4 || i === 5) vac += a;
+                } else {
+                    if (i === 0 || i === 1) pmp += a;
+                    if (i === 3 || i === 4) vac += a;
+                }
+            });
+
+            let vp = +vacToPmp.value || 0;
+            let pv = +pmpToVac.value || 0;
+
+            let vacFromPmp = Math.floor(pv / 5);
+            vac += vacFromPmp;
+            points += vacFromPmp * 3;
+            pmp += vp;
+            points += vp * 2;
+            points += (+extra.value || 0);
+
+            let n = norms[promo.value] || { points: 1, pmp: 1, vac: 1 };
+            return { points, pmp, vac, error, n };
+        }
+
+        // === Рендер дашборда ===
+        function renderDashboard() {
+            updateTableCalculations();
+            const s = calc();
+            const isWeekly = promo.value === "Недельный отчет";
+            const totalBodi = getTotalBodi();
+            let fail = [];
+            if (penalty13.checked || penalty23.checked) fail.push("⚠️ Имеются активные взыскания");
+            if (s.error) fail.push("❌ Ошибки в таблице (заявлено меньше, чем не принято)");
+            if (!exam.checked) fail.push("❌ Экзамен не сдан");
+            if (s.points < s.n.points) fail.push("❌ Недостаточно баллов (минимум " + s.n.points + ")");
+            if (s.pmp < s.n.pmp) fail.push("❌ Недостаточно ПМП (нужно " + s.n.pmp + ")");
+            if (s.vac < s.n.vac) fail.push("❌ Недостаточно вакцинаций (нужно " + s.n.vac + ")");
+            if (totalBodi > 5) fail.push("❌ Сделано " + totalBodi + " скриншотов без боди-камеры (максимум 5)");
+
+            let verdictOk = false;
+            if (isWeekly) {
+                verdictOk = s.points >= 300 && totalBodi <= 5;
+            } else {
+                verdictOk = fail.length === 0;
+            }
+
+            const container = document.getElementById('visualReport');
+            let html = '';
+
+            html += `<div class="report-header">
+                <div class="name">${fullname.value || '—'}</div>
+                <div class="static">${static.value ? 'Статик: ' + static.value : '—'}</div>
+            </div>`;
+
+            if (isWeekly) {
+                html += `<div style="margin-bottom:16px;color:#b3d9ff;font-size:1.2rem;font-weight:500;">📋 Недельный отчёт</div>`;
+                if (seniority.value) {
+                    html += `<div class="report-category"><span class="label">⏳ Выслуга лет</span><span class="value">${seniority.value}</span></div>`;
+                }
+                html += `<div class="report-category"><span class="label">⭐ Баллы</span><span class="value">${s.points}</span></div>`;
+                html += `<div class="report-category"><span class="label">☀️ ПМП день</span><span class="value">${tb.rows[0]?.querySelector(".acc")?.textContent || 0}</span></div>`;
+                html += `<div class="report-category"><span class="label">🌙 ПМП ночь</span><span class="value">${tb.rows[1]?.querySelector(".acc")?.textContent || 0}</span></div>`;
+                html += `<div class="report-category"><span class="label">🏙️ Вакцинации город</span><span class="value">${tb.rows[4]?.querySelector(".acc")?.textContent || 0}</span></div>`;
+                html += `<div class="report-category"><span class="label">🌍 Вакцинации округ</span><span class="value">${tb.rows[5]?.querySelector(".acc")?.textContent || 0}</span></div>`;
+                html += `<div class="report-category"><span class="label">🎥 Без боди</span><span class="value">${totalBodi}</span></div>`;
+                // Доп. баллы
+                const extraRow = tb.querySelector('tr[data-extra="true"]');
+                const extraVal = extraRow ? +extraRow.querySelector(".t-extra").value || 0 : 0;
+                html += `<div class="report-category"><span class="label">⭐ Доп. баллы</span><span class="value">${extraVal}</span></div>`;
+                html += `<div class="report-total">🏆 ИТОГОВЫЙ БАЛЛ: <span>${s.points}</span></div>`;
+                if (!verdictOk) {
+                    html += `<div class="report-errors"><div class="label">❌ Ошибки / недочеты</div><ul>`;
+                    if (s.points < 300) html += `<li>Недостаточно баллов (минимум 300)</li>`;
+                    if (totalBodi > 5) html += `<li>Сделано ${totalBodi} скриншотов без боди-камеры (максимум 5)</li>`;
+                    html += `</ul></div>`;
+                } else {
+                    html += `<div class="report-ok">✅ Отчёт одобрен</div>`;
+                }
+            } else {
+                html += `<div style="margin-bottom:16px;color:#b3d9ff;font-size:1.2rem;font-weight:500;">📈 Повышение: ${promo.value || '—'}</div>`;
+                html += `<div class="report-category"><span class="label">📖 Тема экзамена</span><span class="value">${document.getElementById('topic').textContent}</span></div>`;
+                html += `<div class="report-category"><span class="label">✅ Экзамен</span><span class="value">${exam.checked ? '✅ Сдан' : '❌ Не сдан'}</span></div>`;
+
+                const pointsPct = Math.min(100, s.n.points ? (s.points / s.n.points) * 100 : 0);
+                const pmpPct = Math.min(100, s.n.pmp ? (s.pmp / s.n.pmp) * 100 : 0);
+                const vacPct = Math.min(100, s.n.vac ? (s.vac / s.n.vac) * 100 : 0);
+
+                html += `<div style="margin:16px 0;">`;
+                html += `<div class="progress-label"><span>⭐ Баллы</span><span class="val">${s.points} / ${s.n.points}</span></div>`;
+                html += `<div class="progress"><div class="fill" style="width:${pointsPct}%;"></div></div>`;
+                html += `<div class="progress-label"><span>🚑 ПМП</span><span class="val">${s.pmp} / ${s.n.pmp}</span></div>`;
+                html += `<div class="progress"><div class="fill" style="width:${pmpPct}%;"></div></div>`;
+                html += `<div class="progress-label"><span>💉 Вакцинации</span><span class="val">${s.vac} / ${s.n.vac}</span></div>`;
+                html += `<div class="progress"><div class="fill" style="width:${vacPct}%;"></div></div>`;
+                html += `</div>`;
+
+                html += `<div class="report-total">🏆 ИТОГОВЫЙ БАЛЛ: <span>${s.points}</span></div>`;
+
+                if (verdictOk) {
+                    html += `<div class="report-ok">✅ Отчёт одобрен — можно подавать заявление на повышение</div>`;
+                } else {
+                    html += `<div class="report-errors"><div class="label">❌ Ошибки / недочеты</div><ul>`;
+                    fail.forEach(f => { html += `<li>${f}</li>`; });
+                    html += `</ul></div>`;
+                }
+            }
+
+            const remarksText = remarks.value.trim();
+            if (remarksText) {
+                html += `<div class="report-remarks"><strong>📝 Замечания:</strong> ${remarksText}</div>`;
+            }
+
+            container.innerHTML = html;
+        }
+
+        // === Генерация текстового отчёта ===
+        function generateFullReport(e) {
+            if (e) e.preventDefault();
+            updateTableCalculations();
+            const s = calc();
+            const isWeekly = promo.value === "Недельный отчет";
+            const totalBodi = getTotalBodi();
+
+            if (isWeekly) {
+                const staticId = static.value.trim();
+                const seniorityVal = seniority.value.trim();
+                const nameDisplay = fullname.value.trim() || '—';
+                const staticDisplay = staticId || '—';
+                const seniorityDisplay = seniorityVal || '—';
+
+                let reportLines = [];
+                reportLines.push(`*** Работник: *** *${nameDisplay}*`);
+                reportLines.push(`*** Статик: *** *${staticDisplay}*`);
+                reportLines.push(`*** Выслуга лет: *** *${seniorityDisplay}*`);
+                reportLines.push('# Недельный отчет :pencil: #');
+                reportLines.push('');
+
+                let failReasons = [];
+
+                if (!staticId) {
+                    failReasons.push("Не указан статический ID персонажа");
+                }
+
+                if (!seniorityVal) {
+                    failReasons.push("Не указана выслуга лет");
+                }
+
+                if (staticId && seniorityVal) {
+                    const approved = s.points >= 300 && totalBodi <= 5;
+                    reportLines.push(`## Баллы: ${s.points} ##`);
+                    reportLines.push(`> ПМП день: ${tb.rows[0]?.querySelector(".acc")?.textContent || 0}`);
+                    reportLines.push(`> ПМП ночь: ${tb.rows[1]?.querySelector(".acc")?.textContent || 0}`);
+                    reportLines.push(`> Вакцинации город: ${tb.rows[4]?.querySelector(".acc")?.textContent || 0}`);
+                    reportLines.push(`> Вакцинации округ: ${tb.rows[5]?.querySelector(".acc")?.textContent || 0}`);
+                    const extraRow = tb.querySelector('tr[data-extra="true"]');
+                    const extraVal = extraRow ? +extraRow.querySelector(".t-extra").value || 0 : 0;
+                    if (extraVal > 0) {
+                        reportLines.push(`> Доп. баллы: +${extraVal}`);
+                    }
+                    reportLines.push('');
+
+                    if (!approved) {
+                        if (s.points < 300) failReasons.push("Недостаточно баллов (минимум 300)");
+                        if (totalBodi > 5) failReasons.push(`Сделано ${totalBodi} скриншотов без боди-камеры (максимум 5)`);
+                    }
+
+                    if (approved) {
+                        reportLines.push('# :white_check_mark: ОТЧЁТ ОДОБРЕН #');
+                    } else {
+                        reportLines.push('# :x: ОТЧЁТ ОТКЛОНЁН #');
+                        reportLines.push('');
+                        const uniqueFail = [...new Set(failReasons)];
+                        uniqueFail.forEach(f => { reportLines.push('• ' + f); });
+                    }
+                } else {
+                    reportLines.push('# :x: ОТЧЁТ ОТКЛОНЁН #');
+                    reportLines.push('');
+                    const uniqueFail = [...new Set(failReasons)];
+                    uniqueFail.forEach(f => { reportLines.push('• ' + f); });
+                }
+
+                const remarksText = remarks.value.trim();
+                let finalRemarks = remarksText ? remarksText.split('\n').filter(l => l.trim()) : [];
+
+                if (!seniorityVal) {
+                    const seniorityNote = "- Выслуга лет — это количество полных недель, которые вы находитесь во фракции";
+                    if (!finalRemarks.includes(seniorityNote)) {
+                        finalRemarks.push(seniorityNote);
+                    }
+                }
+
+                if (finalRemarks.length > 0) {
+                    reportLines.push('');
+                    reportLines.push('```Замечания:');
+                    reportLines.push(finalRemarks.join('\n'));
+                    reportLines.push('```');
+                }
+
+                out.value = reportLines.join('\n');
+                renderDashboard();
+                return;
+            }
+
+            // --- Логика для повышения (НЕ недельный отчет) ---
+            const staticId = static.value.trim();
+            const hasPenalty = penalty13.checked || penalty23.checked;
+            const examPassed = exam.checked;
+
+            let reportLines = [];
+            const nameDisplay = fullname.value.trim() || '—';
+            const staticDisplay = staticId || '—';
+            const promoDisplay = promo.value || '—';
+
+            reportLines.push(`*** Работник: *** *${nameDisplay}*`);
+            reportLines.push(`*** Статик: *** *${staticDisplay}*`);
+            reportLines.push(`*** Повышение: *** *${promoDisplay}*`);
+            reportLines.push('');
+
+            let failReasons = [];
+
+            if (!staticId) {
+                failReasons.push("Не указан статический ID персонажа");
+            }
+
+            if (staticId && hasPenalty) {
+                failReasons.push("Имеются активные взыскания");
+            }
+
+            if (staticId && !hasPenalty && !examPassed) {
+                failReasons.push("Экзамен не сдан");
+            }
+
+            if (staticId && totalBodi > 5) {
+                failReasons.push(`Сделано ${totalBodi} скриншотов без боди-камеры (максимум 5)`);
+            }
+
+            if (staticId && !hasPenalty && examPassed && totalBodi <= 5) {
+                reportLines = [];
+                reportLines.push(`*** Работник: *** *${nameDisplay}*`);
+                reportLines.push(`*** Статик: *** *${staticDisplay}*`);
+                reportLines.push(`*** Повышение: *** *${promoDisplay}*`);
+                reportLines.push('');
+                reportLines.push(`> **Баллы: ${s.points}/${s.n.points}**`);
+                reportLines.push(`> **ПМП: ${s.pmp}/${s.n.pmp}**`);
+                reportLines.push(`> **Вакцинации: ${s.vac}/${s.n.vac}**`);
+                reportLines.push('');
+                reportLines.push(`### Экзамен: Сдан  :green_book: ###`);
+                reportLines.push(`***Тема: ${document.getElementById('topic').textContent}***`);
+                reportLines.push('');
+
+                if (s.error) failReasons.push("Ошибки в таблице (заявлено меньше, чем не принято)");
+                if (s.points < s.n.points) failReasons.push("Недостаточно баллов (минимум " + s.n.points + ")");
+                if (s.pmp < s.n.pmp) failReasons.push("Недостаточно ПМП (нужно " + s.n.pmp + ")");
+                if (s.vac < s.n.vac) failReasons.push("Недостаточно вакцинаций (нужно " + s.n.vac + ")");
+            } else if (staticId && !hasPenalty && !examPassed && totalBodi <= 5) {
+                reportLines.push(`### Экзамен: Не сдан  :closed_book: ###`);
+                reportLines.push(`***Тема: ${document.getElementById('topic').textContent}***`);
+                reportLines.push('');
+            }
+
+            const verdictOk = failReasons.length === 0 && staticId && examPassed && !hasPenalty && totalBodi <= 5;
+
+            if (verdictOk) {
+                reportLines.push('# :white_check_mark: ОТЧЁТ ОДОБРЕН #');
+                reportLines.push('');
+                reportLines.push('*Для повышения на ' + (promo.value.split("→")[1] || "") + ' ранг заполните заявление на повышение в канале* https://discord.com/channels/1482048390119555123/1518676182885863437');
+            } else {
+                reportLines.push('# :x: ОТЧЁТ ОТКЛОНЁН #');
+                reportLines.push('');
+                const uniqueFail = [...new Set(failReasons)];
+                uniqueFail.forEach(f => { reportLines.push('• ' + f); });
+            }
+
+            const remarksText = remarks.value.trim();
+            if (remarksText) {
+                reportLines.push('');
+                reportLines.push('```Замечания:');
+                reportLines.push(remarksText);
+                reportLines.push('```');
+            }
+
+            out.value = reportLines.join('\n');
+            renderDashboard();
+        }
+
+        // === Копирование отчёта ===
+        function copyReport(e) {
+            if (e) e.preventDefault();
+            if (!out.value) {
+                generateFullReport();
+            }
+            navigator.clipboard.writeText(out.value).then(() => {
+                const btn = document.getElementById('copyBtn');
+                btn.classList.add('copy-success');
+                btn.textContent = '✅ Скопировано!';
+                setTimeout(() => {
+                    btn.classList.remove('copy-success');
+                    btn.textContent = '📋 Копировать отчёт';
+                }, 1200);
+            }).catch(() => {
+                const btn = document.getElementById('copyBtn');
+                btn.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
+                btn.textContent = '❌ Ошибка';
+                setTimeout(() => {
+                    btn.style.background = '';
+                    btn.textContent = '📋 Копировать отчёт';
+                }, 1200);
+            });
+        }
+
+        // === Сброс формы ===
+        function resetForm(e) {
+            if (e) e.preventDefault();
+            fullname.value = "";
+            static.value = "";
+            seniority.value = "";
+            promo.value = "3→4";
+            document.getElementById('topic').textContent = norms["3→4"].topic;
+            exam.checked = false;
+            penalty13.checked = false;
+            penalty23.checked = false;
+            [...tb.rows].forEach(row => {
+                const tInput = row.querySelector(".t");
+                const rInput = row.querySelector(".r");
+                const bodiInput = row.querySelector(".bodi-input");
+                const tExtra = row.querySelector(".t-extra");
+                if (tInput) tInput.value = 0;
+                if (rInput) rInput.value = 0;
+                if (bodiInput) bodiInput.value = 0;
+                if (tExtra) tExtra.value = 0;
+                row.querySelector(".acc").textContent = "0";
+                row.querySelector(".pts").textContent = "0";
+                row.classList.remove("error");
+            });
+            vacToPmp.value = 0;
+            pmpToVac.value = 0;
+            extra.value = 0;
+            remarks.value = "";
+            out.value = "";
+            toggleSeniority();
+            toggleWeeklyView();
+            updateBodiRemarks();
+            calcAndRender();
+            syncRemarkButtons();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // === Подписка на события для всех полей ===
+        function setupEventListeners() {
+            document.getElementById('fullname').addEventListener('input', renderDashboard);
+            document.getElementById('static').addEventListener('input', renderDashboard);
+            document.getElementById('seniority').addEventListener('input', renderDashboard);
+            document.getElementById('vacToPmp').addEventListener('input', calcAndRender);
+            document.getElementById('pmpToVac').addEventListener('input', calcAndRender);
+            document.getElementById('extra').addEventListener('input', calcAndRender);
+            document.getElementById('exam').addEventListener('change', renderDashboard);
+            document.getElementById('penalty13').addEventListener('change', renderDashboard);
+            document.getElementById('penalty23').addEventListener('change', renderDashboard);
+            document.getElementById('remarks').addEventListener('input', function() {
+                syncRemarkButtons();
+                renderDashboard();
+            });
+        }
+
+        // Первоначальный рендер
+        toggleSeniority();
+        renderTable(false);
+        toggleWeeklyView();
+        document.getElementById('topic').textContent = norms["3→4"].topic;
+        updateBodiRemarks();
+        setupEventListeners();
+        calcAndRender();
+        syncRemarkButtons();
+    </script>
+
+</body>
+</html>
