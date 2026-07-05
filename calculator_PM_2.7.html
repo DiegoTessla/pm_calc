@@ -554,10 +554,10 @@
             </div>
         </div>
 
-        <!-- Новый чекбокс для бота -->
-        <div class="checkbox-group" style="margin-top:12px;">
+        <!-- Новый чекбокс для бота с обёрткой для скрытия -->
+        <div id="bot-group" class="checkbox-group" style="margin-top:12px;">
             <input type="checkbox" id="botBroken">
-            <label for="botBroken" class="label-text">🤖 Бот не работает (использовать ✨вопросы-старшим-и-пожелания)</label>
+            <label for="botBroken" class="label-text">🤖 Бот не работает (использовать резервный канал)</label>
         </div>
     </div>
 
@@ -759,11 +759,14 @@
             document.getElementById('exam-checkbox-group').style.display = isWeekly ? 'none' : '';
             document.getElementById('penalty-group').style.display = isWeekly ? 'none' : '';
             document.getElementById('replacements-grid').style.display = isWeekly ? 'none' : '';
+            // Скрываем чекбокс "Бот не работает"
+            document.getElementById('bot-group').style.display = isWeekly ? 'none' : '';
 
             if (isWeekly) {
                 document.getElementById('exam').checked = false;
                 document.getElementById('penalty13').checked = false;
                 document.getElementById('penalty23').checked = false;
+                document.getElementById('botBroken').checked = false;
                 document.getElementById('vacToPmp').value = 0;
                 document.getElementById('pmpToVac').value = 0;
                 document.getElementById('extra').value = 0;
@@ -968,7 +971,7 @@
                 html += `<div class="progress"><div class="fill" style="width:${vacPct}%;"></div></div>`;
                 html += `</div>`;
 
-                // Добавляем индикацию канала
+                // Добавляем индикацию канала (только для повышения)
                 const botBroken = document.getElementById('botBroken').checked;
                 const channelStatus = botBroken ? '🔴 Резервный канал (бот не работает)' : '🟢 Основной канал (бот работает)';
                 html += `<div class="report-category" style="border-left-color:#ffd700;">
@@ -1003,7 +1006,7 @@
             const isWeekly = promo.value === "Недельный отчет";
             const totalBodi = getTotalBodi();
 
-            // Получаем состояние бота
+            // Получаем состояние бота (используется только для повышения)
             const botBroken = document.getElementById('botBroken').checked;
             const channelLink = botBroken 
                 ? 'https://discord.com/channels/1482048390119555123/1482048392912703503' 
