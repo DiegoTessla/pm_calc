@@ -501,6 +501,19 @@
             th, td { padding: 6px 6px; font-size: 0.8rem; }
             .bodi-input { width: 40px; padding: 4px; }
         }
+
+        /* ---------- Версия в углу ---------- */
+        #version {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            color: rgba(255, 255, 255, 0.25);
+            font-size: 12px;
+            font-family: 'Segoe UI', sans-serif;
+            pointer-events: none;
+            user-select: none;
+            z-index: 9999;
+        }
     </style>
 </head>
 <body>
@@ -581,7 +594,13 @@
                 <tbody></tbody>
             </table>
         </div>
-        <div style="margin-top:10px; color:#b0cce8; font-size:0.85rem;">
+        <!-- Контейнер для доп. баллов (виден только в недельном отчёте) -->
+        <div id="extra-container" style="margin-top:14px; display: none; align-items: center; gap: 16px; flex-wrap: wrap;">
+            <label for="extra" style="color: #b3d9ff; font-weight: 500;">⭐ Дополнительные баллы:</label>
+            <input id="extra" type="number" value="0" min="0" style="width: 120px; padding: 8px 12px;">
+            <span style="color: #8899aa; font-size: 0.9rem;">(введите число, которое прибавится к итогу)</span>
+        </div>
+        <div style="margin-top:8px; color:#b0cce8; font-size:0.85rem;">
             <i>📌 В столбце «Без боди» укажите количество скриншотов без боди-камеры для каждого действия. Если суммарно наберется более 5, отчет будет отклонен с замечанием.</i>
         </div>
     </div>
@@ -591,9 +610,8 @@
         <h2>🔄 Замены</h2>
         <!-- Сетка замен (скрывается для недельного отчета) -->
         <div id="replacements-grid" class="grid">
-            <div><label>💉 Вакцины → 🚑 ПМП</label><input id="vacToPmp" type="number" value="0" min="0"></div>
-            <div><label>🚑 ПМП → 💉 Вакцины (5 ПМП = 1 вакцина)</label><input id="pmpToVac" type="number" value="0" min="0"></div>
-            <div><label>⭐ Доп. баллы</label><input id="extra" type="number" value="0"></div>
+            <div id="repl-vac-to-pmp"><label>💉 Вакцины → 🚑 ПМП</label><input id="vacToPmp" type="number" value="0" min="0"></div>
+            <div id="repl-pmp-to-vac"><label>🚑 ПМП → 💉 Вакцины (5 ПМП = 1 вакцина)</label><input id="pmpToVac" type="number" value="0" min="0"></div>
         </div>
 
         <div style="margin-top:10px">
@@ -634,6 +652,9 @@
         <!-- Текстовое поле для копирования -->
         <textarea id="out" rows="18"></textarea>
     </div>
+
+    <!-- Версия -->
+    <div id="version">v2.9</div>
 
     <script>
         // === Данные ===
@@ -745,8 +766,33 @@
             document.getElementById('exam-topic-group').style.display = isWeekly ? 'none' : '';
             document.getElementById('exam-checkbox-group').style.display = isWeekly ? 'none' : '';
             document.getElementById('penalty-group').style.display = isWeekly ? 'none' : '';
-            document.getElementById('replacements-grid').style.display = isWeekly ? 'none' : '';
             document.getElementById('botNotWorking-group').style.display = isWeekly ? 'none' : '';
+
+            // Управление видимостью полей замен: скрываем оба поля (вакцины->пмп и пмп->вакцины)
+            const grid = document.getElementById('replacements-grid');
+            if (grid) {
+                const children = grid.children;
+                if (children.length >= 2) {
+                    if (isWeekly) {
+                        children[0].style.display = 'none';
+                        children[1].style.display = 'none';
+                    } else {
+                        children[0].style.display = '';
+                        children[1].style.display = '';
+                    }
+                }
+            }
+
+            // Управление видимостью поля доп. баллов (только для недельного отчёта)
+            const extraContainer = document.getElementById('extra-container');
+            if (extraContainer) {
+                if (isWeekly) {
+                    extraContainer.style.display = 'flex';
+                } else {
+                    extraContainer.style.display = 'none';
+                    document.getElementById('extra').value = 0; // обнуляем при скрытии
+                }
+            }
 
             // Показываем/скрываем кнопку WARN
             const warnBtn = document.querySelector('.weekly-warn');
@@ -769,14 +815,13 @@
             }
 
             if (isWeekly) {
-                // Обнуляем специфичные для повышения поля
+                // Обнуляем специфичные для повышения поля (кроме extra, он уже обнулён при скрытии)
                 document.getElementById('exam').checked = false;
                 document.getElementById('penalty13').checked = false;
                 document.getElementById('penalty23').checked = false;
                 document.getElementById('botNotWorking').checked = false;
                 document.getElementById('vacToPmp').value = 0;
                 document.getElementById('pmpToVac').value = 0;
-                document.getElementById('extra').value = 0;
             }
 
             // Таблицу не пересоздаём, только обновляем расчёты
@@ -886,7 +931,11 @@
             points += vacFromPmp * 3;
             pmp += vp;
             points += vp * 2;
-            points += (+extra.value || 0);
+
+            // Доп. баллы добавляем только для недельного отчёта (поле видно только там)
+            if (isWeekly) {
+                points += (+extra.value || 0);
+            }
 
             let n = norms[promo.value] || { points: 1, pmp: 1, vac: 1 };
             return { points, pmp, vac, error, n };
@@ -933,6 +982,10 @@
                 html += `<div class="report-category"><span class="label">🏙️ Вакцинации город</span><span class="value">${tb.rows[3]?.querySelector(".acc")?.textContent || 0}</span></div>`;
                 html += `<div class="report-category"><span class="label">🌍 Вакцинации округ</span><span class="value">${tb.rows[4]?.querySelector(".acc")?.textContent || 0}</span></div>`;
                 html += `<div class="report-category"><span class="label">🎥 Без боди</span><span class="value">${totalBodi}</span></div>`;
+                const extraVal = +extra.value || 0;
+                if (extraVal > 0) {
+                    html += `<div class="report-category"><span class="label">⭐ Доп. баллы</span><span class="value">${extraVal}</span></div>`;
+                }
                 html += `<div class="report-total">🏆 ИТОГОВЫЙ БАЛЛ: <span>${s.points}</span></div>`;
                 if (!verdictOk) {
                     html += `<div class="report-errors"><div class="label">❌ Ошибки / недочеты</div><ul>`;
@@ -1019,6 +1072,10 @@
                     reportLines.push(`> ПМП ночь: ${tb.rows[1]?.querySelector(".acc")?.textContent || 0}`);
                     reportLines.push(`> Вакцинации город: ${tb.rows[3]?.querySelector(".acc")?.textContent || 0}`);
                     reportLines.push(`> Вакцинации округ: ${tb.rows[4]?.querySelector(".acc")?.textContent || 0}`);
+                    const extraVal = +extra.value || 0;
+                    if (extraVal > 0) {
+                        reportLines.push(`> Доп. баллы: ${extraVal}`);
+                    }
                     reportLines.push('');
 
                     if (!approved) {
@@ -1105,6 +1162,7 @@
                 reportLines.push(`> **Баллы: ${s.points}/${s.n.points}**`);
                 reportLines.push(`> **ПМП: ${s.pmp}/${s.n.pmp}**`);
                 reportLines.push(`> **Вакцинации: ${s.vac}/${s.n.vac}**`);
+                // Доп. баллы не добавляем, т.к. они обнулены и не видны
                 reportLines.push('');
                 reportLines.push(`### Экзамен: Сдан  :green_book: ###`);
                 reportLines.push(`***Тема: ${document.getElementById('topic').textContent}***`);
@@ -1228,7 +1286,7 @@
         // === Первоначальный рендер ===
         renderTable(); // создаём таблицу один раз
         toggleSeniority();
-        toggleWeeklyView(); // применяем начальную видимость
+        toggleWeeklyView(); // применяем начальную видимость (extra скрыт)
         document.getElementById('topic').textContent = norms["3→4"].topic;
         updateBodiRemarks();
         setupEventListeners();
