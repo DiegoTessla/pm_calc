@@ -554,10 +554,12 @@
             </div>
         </div>
 
-        <!-- Новый чекбокс для бота с обёрткой для скрытия -->
-        <div id="bot-group" class="checkbox-group" style="margin-top:12px;">
-            <input type="checkbox" id="botBroken">
-            <label for="botBroken" class="label-text">🤖 Бот не работает (использовать резервный канал)</label>
+        <!-- Бот не работает (добавлено) -->
+        <div id="botNotWorking-group" style="margin-top:12px;">
+            <div class="checkbox-group">
+                <input type="checkbox" id="botNotWorking">
+                <label for="botNotWorking" class="label-text">🤖 Бот не работает</label>
+            </div>
         </div>
     </div>
 
@@ -607,10 +609,13 @@
                 <button type="button" class="remark-btn" data-text="- При заполнении отчета не трогайте не задействованные строчки (не нужно ставить прочерки)">📄 Не трогать строчки</button>
                 <button type="button" class="remark-btn" data-text="- В последующих отчетах разделяйте ПМП сделанные в дневное и ночное время в разные папки">📁 Разделять ПМП</button>
                 <button type="button" class="remark-btn" data-text="- Выдача таблеток в зачет не идёт">💊 Таблетки не в зачет</button>
+                <button type="button" class="remark-btn" data-text="- В последующих отчетах разделяйте вакцинации сделанные в PB/SH и ELS в разные папки">💉 Разделять вакцинации</button>
                 <button type="button" class="remark-btn" data-text="- Скриншоты, сделанные до вашего последнего повышения, в зачет не идут">📸 Скриншоты до повышения</button>
                 <button type="button" class="remark-btn" data-text="- Много ПМП выполнено с выключенной боди-камерой">🎥 Без боди-камеры</button>
                 <button type="button" class="remark-btn" data-text="- Когда делаете скриншот вакцины делайте в кабинете, не выходя в коридор">💉 Скриншот вне кабинета</button>
                 <button type="button" class="remark-btn" data-text="- Прикрепите ссылку на сданный устный экзамен">📚 Нет экзамена</button>
+                <!-- Новая кнопка для недельного отчета (скрыта по умолчанию) -->
+                <button type="button" class="remark-btn weekly-warn hidden" data-text="- У вас есть активное взыскание, при активном взыскании премия не дается, снимите его в ближайшее время для получения премии">⚠️ WARN (взыскание)</button>
             </div>
         </div>
     </div>
@@ -636,7 +641,6 @@
             ["☀️ ПМП день", 2],
             ["🌙 ПМП ночь", 3],
             ["🚫 Отмена вызова", 1],
-            ["💊 Выдача таблеток", 1],
             ["🏙️ Вакцинация город", 3],
             ["🌍 Вакцинация округ", 4],
             ["📋 Медицинские справки", 3]
@@ -663,29 +667,23 @@
 
         // === Инициализация таблицы ===
         const tb = document.querySelector("#tbl tbody");
-        let currentActions = actionsPromo;
-
-        function renderTable(isWeekly) {
-            currentActions = isWeekly ? actionsFull : actionsPromo;
+        // Функция рендера таблицы (вызывается только один раз при загрузке и при сбросе)
+        function renderTable() {
+            // Используем actionsPromo как основу (они одинаковы для всех режимов)
+            const actions = actionsPromo;
             tb.innerHTML = '';
-
-            // Для недельного отчета добавляем строку "Доп. баллы"
-            const actionsToRender = isWeekly ? [...currentActions, ["⭐ Доп. баллы (введите количество)", 1]] : currentActions;
-
-            actionsToRender.forEach((a, i) => {
-                const isExtraRow = isWeekly && i === currentActions.length;
+            actions.forEach((a, i) => {
                 tb.insertAdjacentHTML("beforeend",
-                    `<tr data-i="${i}" data-extra="${isExtraRow ? 'true' : 'false'}">
+                    `<tr data-i="${i}">
                         <td>${a[0]}</td>
-                        <td>${isExtraRow ? `<input type="number" value="0" class="t-extra" min="0" style="width:80px;">` : `<input type="number" value="0" class="t" min="0">`}</td>
-                        <td>${isExtraRow ? '—' : `<input type="number" value="0" class="r" min="0">`}</td>
-                        <td>${isExtraRow ? '—' : `<input type="number" value="0" class="bodi-input" data-row="${i}" min="0" style="width:60px; text-align:center;">`}</td>
+                        <td><input type="number" value="0" class="t" min="0"></td>
+                        <td><input type="number" value="0" class="r" min="0"></td>
+                        <td><input type="number" value="0" class="bodi-input" data-row="${i}" min="0" style="width:60px; text-align:center;"></td>
                         <td class="acc">0</td>
                         <td class="pts">0</td>
                     </tr>`
                 );
             });
-
             // Подписываем события на все поля ввода таблицы
             document.querySelectorAll('#tbl input').forEach(input => {
                 input.addEventListener('input', function() {
@@ -716,18 +714,7 @@
         function updateTableCalculations() {
             const isWeekly = document.getElementById('promo').value === 'Недельный отчет';
             const actions = isWeekly ? actionsFull : actionsPromo;
-
             [...tb.rows].forEach((row, i) => {
-                const isExtraRow = row.dataset.extra === 'true';
-
-                if (isExtraRow) {
-                    // Для строки "Доп. баллы" просто показываем введённое значение
-                    const extraVal = +row.querySelector(".t-extra").value || 0;
-                    row.querySelector(".acc").textContent = extraVal;
-                    row.querySelector(".pts").textContent = extraVal;
-                    return;
-                }
-
                 let t = +row.querySelector(".t").value || 0;
                 let r = +row.querySelector(".r").value || 0;
                 row.classList.toggle("error", r > t);
@@ -759,20 +746,40 @@
             document.getElementById('exam-checkbox-group').style.display = isWeekly ? 'none' : '';
             document.getElementById('penalty-group').style.display = isWeekly ? 'none' : '';
             document.getElementById('replacements-grid').style.display = isWeekly ? 'none' : '';
-            // Скрываем чекбокс "Бот не работает"
-            document.getElementById('bot-group').style.display = isWeekly ? 'none' : '';
+            document.getElementById('botNotWorking-group').style.display = isWeekly ? 'none' : '';
+
+            // Показываем/скрываем кнопку WARN
+            const warnBtn = document.querySelector('.weekly-warn');
+            if (warnBtn) {
+                if (isWeekly) {
+                    warnBtn.classList.remove('hidden');
+                } else {
+                    warnBtn.classList.add('hidden');
+                    // Если кнопка была активна, снимаем активность (удаляем из замечаний)
+                    if (warnBtn.classList.contains('active')) {
+                        const text = warnBtn.dataset.text;
+                        const remarks = document.getElementById('remarks');
+                        let lines = remarks.value.split('\n').filter(line => line.trim() !== '');
+                        lines = lines.filter(line => line !== text);
+                        remarks.value = lines.join('\n');
+                        warnBtn.classList.remove('active');
+                        remarks.dispatchEvent(new Event('input'));
+                    }
+                }
+            }
 
             if (isWeekly) {
+                // Обнуляем специфичные для повышения поля
                 document.getElementById('exam').checked = false;
                 document.getElementById('penalty13').checked = false;
                 document.getElementById('penalty23').checked = false;
-                document.getElementById('botBroken').checked = false;
+                document.getElementById('botNotWorking').checked = false;
                 document.getElementById('vacToPmp').value = 0;
                 document.getElementById('pmpToVac').value = 0;
                 document.getElementById('extra').value = 0;
             }
 
-            renderTable(isWeekly);
+            // Таблицу не пересоздаём, только обновляем расчёты
             updateBodiRemarks();
             calcAndRender();
         }
@@ -860,15 +867,6 @@
                 error = false;
 
             [...tb.rows].forEach((row, i) => {
-                const isExtraRow = row.dataset.extra === 'true';
-
-                if (isExtraRow) {
-                    // Доп. баллы
-                    const extraVal = +row.querySelector(".t-extra").value || 0;
-                    points += extraVal;
-                    return;
-                }
-
                 let t = +row.querySelector(".t").value || 0;
                 let r = +row.querySelector(".r").value || 0;
                 if (r > t) error = true;
@@ -876,13 +874,8 @@
                 if (a < 0) a = 0;
                 let p = a * actions[i][1];
                 points += p;
-                if (isWeekly) {
-                    if (i === 0 || i === 1) pmp += a;
-                    if (i === 4 || i === 5) vac += a;
-                } else {
-                    if (i === 0 || i === 1) pmp += a;
-                    if (i === 3 || i === 4) vac += a;
-                }
+                if (i === 0 || i === 1) pmp += a;
+                if (i === 3 || i === 4) vac += a;
             });
 
             let vp = +vacToPmp.value || 0;
@@ -937,13 +930,9 @@
                 html += `<div class="report-category"><span class="label">⭐ Баллы</span><span class="value">${s.points}</span></div>`;
                 html += `<div class="report-category"><span class="label">☀️ ПМП день</span><span class="value">${tb.rows[0]?.querySelector(".acc")?.textContent || 0}</span></div>`;
                 html += `<div class="report-category"><span class="label">🌙 ПМП ночь</span><span class="value">${tb.rows[1]?.querySelector(".acc")?.textContent || 0}</span></div>`;
-                html += `<div class="report-category"><span class="label">🏙️ Вакцинации город</span><span class="value">${tb.rows[4]?.querySelector(".acc")?.textContent || 0}</span></div>`;
-                html += `<div class="report-category"><span class="label">🌍 Вакцинации округ</span><span class="value">${tb.rows[5]?.querySelector(".acc")?.textContent || 0}</span></div>`;
+                html += `<div class="report-category"><span class="label">🏙️ Вакцинации город</span><span class="value">${tb.rows[3]?.querySelector(".acc")?.textContent || 0}</span></div>`;
+                html += `<div class="report-category"><span class="label">🌍 Вакцинации округ</span><span class="value">${tb.rows[4]?.querySelector(".acc")?.textContent || 0}</span></div>`;
                 html += `<div class="report-category"><span class="label">🎥 Без боди</span><span class="value">${totalBodi}</span></div>`;
-                // Доп. баллы
-                const extraRow = tb.querySelector('tr[data-extra="true"]');
-                const extraVal = extraRow ? +extraRow.querySelector(".t-extra").value || 0 : 0;
-                html += `<div class="report-category"><span class="label">⭐ Доп. баллы</span><span class="value">${extraVal}</span></div>`;
                 html += `<div class="report-total">🏆 ИТОГОВЫЙ БАЛЛ: <span>${s.points}</span></div>`;
                 if (!verdictOk) {
                     html += `<div class="report-errors"><div class="label">❌ Ошибки / недочеты</div><ul>`;
@@ -957,6 +946,7 @@
                 html += `<div style="margin-bottom:16px;color:#b3d9ff;font-size:1.2rem;font-weight:500;">📈 Повышение: ${promo.value || '—'}</div>`;
                 html += `<div class="report-category"><span class="label">📖 Тема экзамена</span><span class="value">${document.getElementById('topic').textContent}</span></div>`;
                 html += `<div class="report-category"><span class="label">✅ Экзамен</span><span class="value">${exam.checked ? '✅ Сдан' : '❌ Не сдан'}</span></div>`;
+                html += `<div class="report-category"><span class="label">🤖 Бот не работает</span><span class="value">${document.getElementById('botNotWorking').checked ? '✅ Да' : '❌ Нет'}</span></div>`;
 
                 const pointsPct = Math.min(100, s.n.points ? (s.points / s.n.points) * 100 : 0);
                 const pmpPct = Math.min(100, s.n.pmp ? (s.pmp / s.n.pmp) * 100 : 0);
@@ -970,14 +960,6 @@
                 html += `<div class="progress-label"><span>💉 Вакцинации</span><span class="val">${s.vac} / ${s.n.vac}</span></div>`;
                 html += `<div class="progress"><div class="fill" style="width:${vacPct}%;"></div></div>`;
                 html += `</div>`;
-
-                // Добавляем индикацию канала (только для повышения)
-                const botBroken = document.getElementById('botBroken').checked;
-                const channelStatus = botBroken ? '🔴 Резервный канал (бот не работает)' : '🟢 Основной канал (бот работает)';
-                html += `<div class="report-category" style="border-left-color:#ffd700;">
-                            <span class="label">🤖 Статус бота</span>
-                            <span class="value">${channelStatus}</span>
-                        </div>`;
 
                 html += `<div class="report-total">🏆 ИТОГОВЫЙ БАЛЛ: <span>${s.points}</span></div>`;
 
@@ -1005,12 +987,6 @@
             const s = calc();
             const isWeekly = promo.value === "Недельный отчет";
             const totalBodi = getTotalBodi();
-
-            // Получаем состояние бота (используется только для повышения)
-            const botBroken = document.getElementById('botBroken').checked;
-            const channelLink = botBroken 
-                ? 'https://discord.com/channels/1482048390119555123/1482048392912703503' 
-                : 'https://discord.com/channels/1482048390119555123/1518676182885863437';
 
             if (isWeekly) {
                 const staticId = static.value.trim();
@@ -1041,13 +1017,8 @@
                     reportLines.push(`## Баллы: ${s.points} ##`);
                     reportLines.push(`> ПМП день: ${tb.rows[0]?.querySelector(".acc")?.textContent || 0}`);
                     reportLines.push(`> ПМП ночь: ${tb.rows[1]?.querySelector(".acc")?.textContent || 0}`);
-                    reportLines.push(`> Вакцинации город: ${tb.rows[4]?.querySelector(".acc")?.textContent || 0}`);
-                    reportLines.push(`> Вакцинации округ: ${tb.rows[5]?.querySelector(".acc")?.textContent || 0}`);
-                    const extraRow = tb.querySelector('tr[data-extra="true"]');
-                    const extraVal = extraRow ? +extraRow.querySelector(".t-extra").value || 0 : 0;
-                    if (extraVal > 0) {
-                        reportLines.push(`> Доп. баллы: +${extraVal}`);
-                    }
+                    reportLines.push(`> Вакцинации город: ${tb.rows[3]?.querySelector(".acc")?.textContent || 0}`);
+                    reportLines.push(`> Вакцинации округ: ${tb.rows[4]?.querySelector(".acc")?.textContent || 0}`);
                     reportLines.push('');
 
                     if (!approved) {
@@ -1154,7 +1125,10 @@
             if (verdictOk) {
                 reportLines.push('# :white_check_mark: ОТЧЁТ ОДОБРЕН #');
                 reportLines.push('');
-                reportLines.push('*Для повышения на ' + (promo.value.split("→")[1] || "") + ' ранг заполните заявление на повышение в канале* ' + channelLink);
+                // Определяем ссылку в зависимости от состояния галки "Бот не работает"
+                const botNotWorking = document.getElementById('botNotWorking').checked;
+                const channelId = botNotWorking ? '1482048392912703503' : '1518676182885863437';
+                reportLines.push('*Для повышения на ' + (promo.value.split("→")[1] || "") + ' ранг заполните заявление на повышение в канале* https://discord.com/channels/1482048390119555123/' + channelId);
             } else {
                 reportLines.push('# :x: ОТЧЁТ ОТКЛОНЁН #');
                 reportLines.push('');
@@ -1210,16 +1184,12 @@
             exam.checked = false;
             penalty13.checked = false;
             penalty23.checked = false;
-            document.getElementById('botBroken').checked = false;
+            document.getElementById('botNotWorking').checked = false;
+            // Обнуляем таблицу без пересоздания
             [...tb.rows].forEach(row => {
-                const tInput = row.querySelector(".t");
-                const rInput = row.querySelector(".r");
-                const bodiInput = row.querySelector(".bodi-input");
-                const tExtra = row.querySelector(".t-extra");
-                if (tInput) tInput.value = 0;
-                if (rInput) rInput.value = 0;
-                if (bodiInput) bodiInput.value = 0;
-                if (tExtra) tExtra.value = 0;
+                row.querySelector(".t").value = 0;
+                row.querySelector(".r").value = 0;
+                row.querySelector(".bodi-input").value = 0;
                 row.querySelector(".acc").textContent = "0";
                 row.querySelector(".pts").textContent = "0";
                 row.classList.remove("error");
@@ -1248,17 +1218,17 @@
             document.getElementById('exam').addEventListener('change', renderDashboard);
             document.getElementById('penalty13').addEventListener('change', renderDashboard);
             document.getElementById('penalty23').addEventListener('change', renderDashboard);
-            document.getElementById('botBroken').addEventListener('change', renderDashboard);
+            document.getElementById('botNotWorking').addEventListener('change', renderDashboard);
             document.getElementById('remarks').addEventListener('input', function() {
                 syncRemarkButtons();
                 renderDashboard();
             });
         }
 
-        // Первоначальный рендер
+        // === Первоначальный рендер ===
+        renderTable(); // создаём таблицу один раз
         toggleSeniority();
-        renderTable(false);
-        toggleWeeklyView();
+        toggleWeeklyView(); // применяем начальную видимость
         document.getElementById('topic').textContent = norms["3→4"].topic;
         updateBodiRemarks();
         setupEventListeners();
