@@ -594,8 +594,8 @@
                 <tbody></tbody>
             </table>
         </div>
-        <!-- Контейнер для доп. баллов (виден только в недельном отчёте) -->
-        <div id="extra-container" style="margin-top:14px; display: none; align-items: center; gap: 16px; flex-wrap: wrap;">
+        <!-- Контейнер для доп. баллов (виден во всех режимах) -->
+        <div id="extra-container" style="margin-top:14px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
             <label for="extra" style="color: #b3d9ff; font-weight: 500;">⭐ Дополнительные баллы:</label>
             <input id="extra" type="number" value="0" min="0" style="width: 120px; padding: 8px 12px;">
             <span style="color: #8899aa; font-size: 0.9rem;">(введите число, которое прибавится к итогу)</span>
@@ -654,7 +654,7 @@
     </div>
 
     <!-- Версия -->
-    <div id="version">v2.9</div>
+    <div id="version">v2.10</div>
 
     <script>
         // === Данные ===
@@ -783,16 +783,8 @@
                 }
             }
 
-            // Управление видимостью поля доп. баллов (только для недельного отчёта)
-            const extraContainer = document.getElementById('extra-container');
-            if (extraContainer) {
-                if (isWeekly) {
-                    extraContainer.style.display = 'flex';
-                } else {
-                    extraContainer.style.display = 'none';
-                    document.getElementById('extra').value = 0; // обнуляем при скрытии
-                }
-            }
+            // Контейнер доп. баллов всегда виден, но для недельного отчета оставляем как есть
+            // (уже display: flex по умолчанию)
 
             // Показываем/скрываем кнопку WARN
             const warnBtn = document.querySelector('.weekly-warn');
@@ -815,7 +807,7 @@
             }
 
             if (isWeekly) {
-                // Обнуляем специфичные для повышения поля (кроме extra, он уже обнулён при скрытии)
+                // Обнуляем специфичные для повышения поля
                 document.getElementById('exam').checked = false;
                 document.getElementById('penalty13').checked = false;
                 document.getElementById('penalty23').checked = false;
@@ -932,10 +924,8 @@
             pmp += vp;
             points += vp * 2;
 
-            // Доп. баллы добавляем только для недельного отчёта (поле видно только там)
-            if (isWeekly) {
-                points += (+extra.value || 0);
-            }
+            // Доп. баллы добавляем для всех типов отчетов
+            points += (+extra.value || 0);
 
             let n = norms[promo.value] || { points: 1, pmp: 1, vac: 1 };
             return { points, pmp, vac, error, n };
@@ -1014,6 +1004,11 @@
                 html += `<div class="progress"><div class="fill" style="width:${vacPct}%;"></div></div>`;
                 html += `</div>`;
 
+                const extraVal = +extra.value || 0;
+                if (extraVal > 0) {
+                    html += `<div class="report-category"><span class="label">⭐ Доп. баллы</span><span class="value">${extraVal}</span></div>`;
+                }
+
                 html += `<div class="report-total">🏆 ИТОГОВЫЙ БАЛЛ: <span>${s.points}</span></div>`;
 
                 if (verdictOk) {
@@ -1040,6 +1035,7 @@
             const s = calc();
             const isWeekly = promo.value === "Недельный отчет";
             const totalBodi = getTotalBodi();
+            const extraVal = +extra.value || 0;
 
             if (isWeekly) {
                 const staticId = static.value.trim();
@@ -1072,7 +1068,6 @@
                     reportLines.push(`> ПМП ночь: ${tb.rows[1]?.querySelector(".acc")?.textContent || 0}`);
                     reportLines.push(`> Вакцинации город: ${tb.rows[3]?.querySelector(".acc")?.textContent || 0}`);
                     reportLines.push(`> Вакцинации округ: ${tb.rows[4]?.querySelector(".acc")?.textContent || 0}`);
-                    const extraVal = +extra.value || 0;
                     if (extraVal > 0) {
                         reportLines.push(`> Доп. баллы: ${extraVal}`);
                     }
@@ -1162,7 +1157,9 @@
                 reportLines.push(`> **Баллы: ${s.points}/${s.n.points}**`);
                 reportLines.push(`> **ПМП: ${s.pmp}/${s.n.pmp}**`);
                 reportLines.push(`> **Вакцинации: ${s.vac}/${s.n.vac}**`);
-                // Доп. баллы не добавляем, т.к. они обнулены и не видны
+                if (extraVal > 0) {
+                    reportLines.push(`> **Доп. баллы: ${extraVal}**`);
+                }
                 reportLines.push('');
                 reportLines.push(`### Экзамен: Сдан  :green_book: ###`);
                 reportLines.push(`***Тема: ${document.getElementById('topic').textContent}***`);
@@ -1286,7 +1283,7 @@
         // === Первоначальный рендер ===
         renderTable(); // создаём таблицу один раз
         toggleSeniority();
-        toggleWeeklyView(); // применяем начальную видимость (extra скрыт)
+        toggleWeeklyView(); // применяем начальную видимость
         document.getElementById('topic').textContent = norms["3→4"].topic;
         updateBodiRemarks();
         setupEventListeners();
