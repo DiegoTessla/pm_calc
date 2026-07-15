@@ -1180,9 +1180,11 @@
             if (verdictOk) {
                 reportLines.push('# :white_check_mark: ОТЧЁТ ОДОБРЕН #');
                 reportLines.push('');
+                
                 // Определяем ссылку в зависимости от состояния галки "Бот не работает"
                 const botNotWorking = document.getElementById('botNotWorking').checked;
-                const channelId = botNotWorking ? '1526519745250332784' : '1518676180964737176';
+                const channelId = botNotWorking ? '1518676180964737176' : '1518676182885863437';
+                
                 reportLines.push('*Для повышения на ' + (promo.value.split("→")[1] || "") + ' ранг заполните заявление на повышение в канале* https://discord.com/channels/1482048390119555123/' + channelId);
             } else {
                 reportLines.push('# :x: ОТЧЁТ ОТКЛОНЁН #');
