@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Калькулятор отчетов PM</title>
     <style>
-        /* ---------- Общие стили ---------- */
+        /* ---------- Reset & Base ---------- */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -38,7 +38,51 @@
             100% { text-shadow: 0 0 30px rgba(179, 217, 255, 0.4); }
         }
 
-        /* ---------- Карточки ---------- */
+        /* ---------- Status Bar ---------- */
+        #statusBar {
+            width: 100%;
+            max-width: 1100px;
+            margin-bottom: 14px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(179, 217, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            font-size: 0.9rem;
+            color: #b0cce8;
+        }
+        #statusBar .online-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        #statusBar .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        #statusBar .dot.online {
+            background: #6fcf97;
+            box-shadow: 0 0 10px rgba(111, 207, 151, 0.5);
+        }
+        #statusBar .dot.offline {
+            background: #ff6b6b;
+            box-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
+        }
+        #statusBar .save-status {
+            color: #8899aa;
+            font-size: 0.85rem;
+        }
+        #statusBar .save-status.saved {
+            color: #6fcf97;
+        }
+
+        /* ---------- Cards ---------- */
         .card {
             background: rgba(255, 255, 255, 0.06);
             backdrop-filter: blur(12px);
@@ -56,24 +100,24 @@
             transform: translateY(-2px);
             box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7);
         }
-        h1 { display: none; }
         h2 {
             color: #b3d9ff;
             font-weight: 500;
             letter-spacing: 0.5px;
-            margin-top: 0;
             margin-bottom: 16px;
             border-bottom: 1px solid rgba(179, 217, 255, 0.1);
             padding-bottom: 8px;
         }
 
-        /* ---------- Сетка и поля ввода ---------- */
+        /* ---------- Grid & Inputs ---------- */
         .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 14px;
         }
-        input, select, textarea {
+        input,
+        select,
+        textarea {
             width: 100%;
             padding: 12px 16px;
             border-radius: 12px;
@@ -83,7 +127,9 @@
             font-size: 1rem;
             transition: border-color 0.3s, box-shadow 0.3s, background 0.3s;
         }
-        input:focus, select:focus, textarea:focus {
+        input:focus,
+        select:focus,
+        textarea:focus {
             outline: none;
             border-color: #8cc4ff;
             box-shadow: 0 0 0 3px rgba(140, 196, 255, 0.2);
@@ -92,8 +138,16 @@
         input::placeholder {
             color: #8899aa;
         }
+        input[type="date"] {
+            color-scheme: dark;
+            cursor: pointer;
+        }
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            cursor: pointer;
+        }
 
-        /* ---------- Выпадающий список ---------- */
+        /* ---------- Select ---------- */
         select {
             appearance: none;
             -webkit-appearance: none;
@@ -114,10 +168,10 @@
         select option:hover,
         select option:checked {
             background: #1a2f44 !important;
-            color: #ffffff !important;
+            color: #fff !important;
         }
 
-        /* ---------- Кастомные чекбоксы ---------- */
+        /* ---------- Custom Checkbox ---------- */
         input[type="checkbox"] {
             appearance: none;
             -webkit-appearance: none;
@@ -143,7 +197,7 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            color: #ffffff;
+            color: #fff;
             font-size: 14px;
             font-weight: 700;
             line-height: 1;
@@ -176,11 +230,8 @@
             gap: 20px 30px;
             margin-top: 8px;
         }
-        .penalty-row .checkbox-group {
-            margin: 0;
-        }
 
-        /* ---------- Кнопки-замечания (улучшенная верстка) ---------- */
+        /* ---------- Remark Buttons ---------- */
         .remark-buttons {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -203,7 +254,7 @@
         .remark-btn:hover {
             background: rgba(255, 255, 255, 0.12);
             border-color: #8cc4ff;
-            color: #ffffff;
+            color: #fff;
         }
         .remark-btn.active {
             background: rgba(95, 168, 255, 0.2);
@@ -211,12 +262,12 @@
             color: #8cc4ff;
         }
 
-        /* ---------- Скрытие элемента ---------- */
+        /* ---------- Hidden ---------- */
         .hidden {
             display: none !important;
         }
 
-        /* ---------- Таблица ---------- */
+        /* ---------- Table ---------- */
         .table-wrapper {
             overflow-x: auto;
             margin: 6px 0;
@@ -241,9 +292,6 @@
             border-radius: 8px;
             color: #e8f0fe;
         }
-        tbody tr {
-            transition: background 0.2s;
-        }
         tbody tr:hover td {
             background: rgba(255, 255, 255, 0.08);
         }
@@ -253,16 +301,10 @@
         tbody tr td:last-child {
             border-radius: 0 10px 10px 0;
         }
-        .error {
-            outline: 2px solid #ff6b6b;
-            outline-offset: -1px;
-            border-radius: 8px;
-        }
         .error td {
             background: rgba(255, 80, 80, 0.12) !important;
         }
 
-        /* Стиль для поля "Без боди" */
         .bodi-input {
             width: 60px;
             padding: 6px 8px;
@@ -279,7 +321,7 @@
             outline: none;
         }
 
-        /* ---------- Прогресс-бары ---------- */
+        /* ---------- Progress Bars ---------- */
         .progress {
             height: 22px;
             background: rgba(255, 255, 255, 0.08);
@@ -295,11 +337,6 @@
             transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
             width: 0%;
             box-shadow: 0 0 12px rgba(140, 196, 255, 0.3);
-            animation: fillPulse 2s infinite alternate;
-        }
-        @keyframes fillPulse {
-            0% { opacity: 0.9; }
-            100% { opacity: 1; }
         }
         .progress-label {
             display: flex;
@@ -309,25 +346,29 @@
             margin-bottom: 2px;
         }
         .progress-label .val {
-            color: #ffffff;
+            color: #fff;
             font-weight: 500;
         }
 
-        /* ---------- Кнопки ---------- */
+        /* ---------- Buttons ---------- */
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
         button {
             padding: 12px 24px;
             border: none;
             border-radius: 40px;
             background: linear-gradient(135deg, #5fa8ff, #3d7ec9);
-            color: #ffffff;
+            color: #fff;
             font-weight: 600;
             font-size: 1rem;
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 4px 14px rgba(95, 168, 255, 0.25);
             letter-spacing: 0.3px;
-            margin-right: 10px;
-            margin-bottom: 8px;
         }
         button:hover {
             transform: translateY(-3px) scale(1.02);
@@ -337,14 +378,12 @@
         button:active {
             transform: translateY(0) scale(0.98);
         }
-        /* Анимация для кнопки копирования при успехе */
-        button.copy-success {
+        .btn-success {
             background: linear-gradient(135deg, #19c37d, #15a067) !important;
             box-shadow: 0 4px 20px rgba(25, 195, 125, 0.5) !important;
-            transform: scale(1.05);
         }
 
-        /* ---------- Текстовое поле для отчёта ---------- */
+        /* ---------- Textarea ---------- */
         textarea#out {
             background: rgba(0, 0, 0, 0.35);
             border: 1px solid rgba(179, 217, 255, 0.15);
@@ -360,7 +399,7 @@
             min-height: 120px;
         }
 
-        /* ---------- Дашборд ---------- */
+        /* ---------- Dashboard ---------- */
         #visualReport {
             margin-top: 20px;
             background: rgba(255, 255, 255, 0.05);
@@ -369,11 +408,16 @@
             padding: 24px;
             border: 1px solid rgba(179, 217, 255, 0.12);
             animation: dashSlideUp 0.3s ease;
-            transition: all 0.2s;
         }
         @keyframes dashSlideUp {
-            0% { opacity: 0; transform: translateY(10px); }
-            100% { opacity: 1; transform: translateY(0); }
+            0% {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
         .report-header {
             display: flex;
@@ -386,7 +430,7 @@
         .report-header .name {
             font-size: 1.6rem;
             font-weight: 600;
-            color: #ffffff;
+            color: #fff;
         }
         .report-header .static {
             font-size: 1rem;
@@ -416,7 +460,7 @@
         .report-category .value {
             font-weight: 600;
             font-size: 1.2rem;
-            color: #ffffff;
+            color: #fff;
         }
         .report-total {
             font-size: 1.8rem;
@@ -475,7 +519,40 @@
             font-style: normal;
         }
 
-        /* ---------- Адаптив ---------- */
+        /* ---------- Offline Notification ---------- */
+        #offlineNotification {
+            display: none;
+            position: fixed;
+            bottom: 60px;
+            right: 20px;
+            background: rgba(255, 107, 107, 0.9);
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-weight: 500;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            z-index: 10000;
+            animation: slideIn 0.3s ease;
+        }
+        #offlineNotification.show {
+            display: block;
+        }
+        @keyframes slideIn {
+            0% { transform: translateX(100px); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+
+        #version {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            color: rgba(255, 255, 255, 0.25);
+            font-size: 12px;
+            user-select: none;
+            z-index: 9999;
+        }
+
+        /* ---------- Responsive ---------- */
         @media (max-width: 768px) {
             body { padding: 16px; }
             .card { padding: 16px; }
@@ -484,15 +561,14 @@
             .grid { grid-template-columns: 1fr 1fr; }
             .remark-buttons { grid-template-columns: 1fr 1fr; }
             table { min-width: 500px; }
+            #statusBar { flex-direction: column; align-items: stretch; text-align: center; }
         }
         @media (max-width: 500px) {
             body { padding: 10px; }
             .card { padding: 12px; }
             .grid { grid-template-columns: 1fr; }
             .remark-buttons { grid-template-columns: 1fr; }
-            .report-header .name { font-size: 1.1rem; }
-            .report-total { font-size: 1.2rem; }
-            button { width: 100%; margin-right: 0; }
+            button { width: 100%; }
             .bodi-input { width: 50px; }
             table { min-width: 400px; }
         }
@@ -501,58 +577,56 @@
             th, td { padding: 6px 6px; font-size: 0.8rem; }
             .bodi-input { width: 40px; padding: 4px; }
         }
-
-        /* ---------- Версия в углу ---------- */
-        #version {
-            position: fixed;
-            bottom: 10px;
-            right: 10px;
-            color: rgba(255, 255, 255, 0.25);
-            font-size: 12px;
-            font-family: 'Segoe UI', sans-serif;
-            pointer-events: none;
-            user-select: none;
-            z-index: 9999;
-        }
     </style>
 </head>
 <body>
 
+    <!-- СТАТУС БАР -->
+    <div id="statusBar">
+        <div class="online-status">
+            <span class="dot online" id="statusDot"></span>
+            <span id="statusText">Online</span>
+        </div>
+        <div class="save-status" id="saveStatus">💾 Данные сохранены</div>
+    </div>
+
+    <!-- Offline уведомление -->
+    <div id="offlineNotification">📶 Вы оффлайн. Данные сохранятся локально и синхронизируются при подключении.</div>
+
     <h1>Калькулятор повышения сотрудников отдела Paramedic</h1>
 
-    <!-- Карточка сотрудника -->
+    <!-- Сотрудник -->
     <div class="card">
         <h2>👤 Сотрудник</h2>
         <div class="grid">
             <input id="fullname" placeholder="Имя Фамилия">
             <input id="static" placeholder="Статик">
-            <!-- Контейнер для выслуги лет (скрыт по умолчанию) -->
             <div id="seniority-group" class="hidden">
                 <input id="seniority" placeholder="Выслуга лет">
             </div>
+            <div id="join-date-group" class="hidden">
+                <input id="joinDate" type="date" value="">
+            </div>
             <select id="promo">
                 <option value="3→4" selected>3→4</option>
-                <option>4→5</option>
-                <option>5→6</option>
-                <option>6→7</option>
-                <option>7→8</option>
-                <option>8→9</option>
-                <option>Недельный отчет</option>
+                <option value="4→5">4→5</option>
+                <option value="5→6">5→6</option>
+                <option value="6→7">6→7</option>
+                <option value="7→8">7→8</option>
+                <option value="8→9">8→9</option>
+                <option value="Недельный отчет">Недельный отчет</option>
             </select>
         </div>
 
-        <!-- Тема экзамена -->
         <div id="exam-topic-group">
             <p><b>📖 Тема экзамена:</b> <span id="topic">Отравление</span></p>
         </div>
 
-        <!-- Чекбокс экзамена -->
         <div id="exam-checkbox-group" class="checkbox-group">
             <input type="checkbox" id="exam">
             <label for="exam" class="label-text">✅ Экзамен сдан</label>
         </div>
 
-        <!-- Взыскания -->
         <div id="penalty-group" style="margin-top:12px;">
             <b>⚠️ Взыскания:</b>
             <div class="penalty-row">
@@ -567,7 +641,6 @@
             </div>
         </div>
 
-        <!-- Бот не работает (добавлено) -->
         <div id="botNotWorking-group" style="margin-top:12px;">
             <div class="checkbox-group">
                 <input type="checkbox" id="botNotWorking">
@@ -576,7 +649,7 @@
         </div>
     </div>
 
-    <!-- Карточка действий -->
+    <!-- Действия -->
     <div class="card">
         <h2>📋 Действия</h2>
         <div class="table-wrapper">
@@ -591,27 +664,25 @@
                         <th>Баллы</th>
                     </tr>
                 </thead>
-                <tbody></tbody>
+                <tbody id="tableBody"></tbody>
             </table>
         </div>
-        <!-- Контейнер для доп. баллов (виден во всех режимах) -->
-        <div id="extra-container" style="margin-top:14px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
-            <label for="extra" style="color: #b3d9ff; font-weight: 500;">⭐ Дополнительные баллы:</label>
-            <input id="extra" type="number" value="0" min="0" style="width: 120px; padding: 8px 12px;">
-            <span style="color: #8899aa; font-size: 0.9rem;">(введите число, которое прибавится к итогу)</span>
+        <div style="margin-top:14px; display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+            <label for="extra" style="color:#b3d9ff; font-weight:500;">⭐ Дополнительные баллы:</label>
+            <input id="extra" type="number" value="0" min="0" style="width:120px; padding:8px 12px;">
+            <span style="color:#8899aa; font-size:0.9rem;">(прибавится к итогу)</span>
         </div>
         <div style="margin-top:8px; color:#b0cce8; font-size:0.85rem;">
-            <i>📌 В столбце «Без боди» укажите количество скриншотов без боди-камеры для каждого действия. Если суммарно наберется более 5, отчет будет отклонен с замечанием.</i>
+            <i>📌 Если суммарно наберется более 5 скриншотов без боди-камеры, отчет будет отклонен.</i>
         </div>
     </div>
 
-    <!-- Карточка замен и замечаний -->
+    <!-- Замены и замечания -->
     <div class="card">
         <h2>🔄 Замены</h2>
-        <!-- Сетка замен (скрывается для недельного отчета) -->
         <div id="replacements-grid" class="grid">
-            <div id="repl-vac-to-pmp"><label>💉 Вакцины → 🚑 ПМП</label><input id="vacToPmp" type="number" value="0" min="0"></div>
-            <div id="repl-pmp-to-vac"><label>🚑 ПМП → 💉 Вакцины (5 ПМП = 1 вакцина)</label><input id="pmpToVac" type="number" value="0" min="0"></div>
+            <div><label>💉 Вакцины → 🚑 ПМП</label><input id="vacToPmp" type="number" value="0" min="0"></div>
+            <div><label>🚑 ПМП → 💉 Вакцины (5 ПМП = 1 вакцина)</label><input id="pmpToVac" type="number" value="0" min="0"></div>
         </div>
 
         <div style="margin-top:10px">
@@ -619,403 +690,434 @@
             <textarea id="remarks" rows="4"></textarea>
         </div>
 
-        <!-- Кнопки-замечания -->
         <div style="margin-top:8px;">
             <div style="color:#b0cce8; font-size:0.9rem; margin-bottom:6px;">🔖 Быстрые замечания:</div>
-            <div class="remark-buttons" id="remarkButtons">
-                <button type="button" class="remark-btn" data-text="- ПМП выполненные на территории больниц и в палатах в зачет нормы не идут">🏥 ПМП в больницах</button>
-                <button type="button" class="remark-btn" data-text="- При заполнении отчета не трогайте не задействованные строчки (не нужно ставить прочерки)">📄 Не трогать строчки</button>
-                <button type="button" class="remark-btn" data-text="- В последующих отчетах разделяйте ПМП сделанные в дневное и ночное время в разные папки">📁 Разделять ПМП</button>
-                <button type="button" class="remark-btn" data-text="- Выдача таблеток в зачет не идёт">💊 Таблетки не в зачет</button>
-                <button type="button" class="remark-btn" data-text="- В последующих отчетах разделяйте вакцинации сделанные в PB/SH и ELS в разные папки">💉 Разделять вакцинации</button>
-                <button type="button" class="remark-btn" data-text="- Скриншоты, сделанные до вашего последнего повышения, в зачет не идут">📸 Скриншоты до повышения</button>
-                <button type="button" class="remark-btn" data-text="- Много ПМП выполнено с выключенной боди-камерой">🎥 Без боди-камеры</button>
-                <button type="button" class="remark-btn" data-text="- Когда делаете скриншот вакцины делайте в кабинете, не выходя в коридор">💉 Скриншот вне кабинета</button>
-                <button type="button" class="remark-btn" data-text="- Прикрепите ссылку на сданный устный экзамен">📚 Нет экзамена</button>
-                <!-- Новая кнопка для недельного отчета (скрыта по умолчанию) -->
-                <button type="button" class="remark-btn weekly-warn hidden" data-text="- У вас есть активное взыскание, при активном взыскании премия не дается, снимите его в ближайшее время для получения премии">⚠️ WARN (взыскание)</button>
-            </div>
+            <div class="remark-buttons" id="remarkButtons"></div>
         </div>
     </div>
 
-    <!-- Карточка отчёта -->
+    <!-- Отчёт -->
     <div class="card">
-        <div style="margin-bottom:10px;">
-            <button type="button" onclick="generateFullReport(event)">📄 Сформировать отчёт</button>
-            <button type="button" id="copyBtn" onclick="copyReport(event)">📋 Копировать отчёт</button>
-            <button type="button" onclick="resetForm(event)">🔄 Сбросить</button>
+        <div class="btn-group">
+            <button onclick="generateReport()">📄 Сформировать отчёт</button>
+            <button id="copyBtn" onclick="copyReport()">📋 Копировать отчёт</button>
+            <button onclick="resetForm()">🔄 Сбросить</button>
         </div>
 
-        <!-- Дашборд -->
         <div id="visualReport"></div>
-
-        <!-- Текстовое поле для копирования -->
         <textarea id="out" rows="18"></textarea>
     </div>
 
-    <!-- Версия -->
-    <div id="version">v2.11</div>
+    <div id="version">v3.2 (автосохранение + offline)</div>
 
     <script>
-        // === Данные ===
-        const actionsFull = [
-            ["☀️ ПМП день", 2],
-            ["🌙 ПМП ночь", 3],
-            ["🚫 Отмена вызова", 1],
-            ["🏙️ Вакцинация город", 3],
-            ["🌍 Вакцинация округ", 4],
-            ["📋 Медицинские справки", 3]
+        // ============================================================
+        //  DATA
+        // ============================================================
+        const ACTIONS = [
+            { name: '☀️ ПМП день', points: 2 },
+            { name: '🌙 ПМП ночь', points: 3 },
+            { name: '🚫 Отмена вызова', points: 1 },
+            { name: '🏙️ Вакцинация город', points: 3 },
+            { name: '🌍 Вакцинация округ', points: 4 },
+            { name: '📋 Медицинские справки', points: 3 }
         ];
 
-        const actionsPromo = [
-            ["☀️ ПМП день", 2],
-            ["🌙 ПМП ночь", 3],
-            ["🚫 Отмена вызова", 1],
-            ["🏙️ Вакцинация город", 3],
-            ["🌍 Вакцинация округ", 4],
-            ["📋 Медицинские справки", 3]
-        ];
-
-        const norms = {
-            "3→4": { points: 0, pmp: 40, vac: 0, topic: "Отравление" },
-            "4→5": { points: 0, pmp: 60, vac: 5, topic: "Растяжение / Вывих" },
-            "5→6": { points: 275, pmp: 85, vac: 10, topic: "Кровотечение / Перелом" },
-            "6→7": { points: 355, pmp: 110, vac: 15, topic: "Регламент выдачи мед справок" },
-            "7→8": { points: 435, pmp: 135, vac: 20, topic: "Утопление" },
-            "8→9": { points: 515, pmp: 160, vac: 25, topic: "Тепловой / Солнечный удар" },
-            "Недельный отчет": { points: 300, pmp: 0, vac: 0, topic: "—" }
+        const NORMS = {
+            '3→4': { points: 0, pmp: 40, vac: 0, topic: 'Отравление' },
+            '4→5': { points: 0, pmp: 60, vac: 5, topic: 'Растяжение / Вывих' },
+            '5→6': { points: 275, pmp: 85, vac: 10, topic: 'Кровотечение / Перелом' },
+            '6→7': { points: 355, pmp: 110, vac: 15, topic: 'Регламент выдачи мед справок' },
+            '7→8': { points: 435, pmp: 135, vac: 20, topic: 'Утопление' },
+            '8→9': { points: 515, pmp: 160, vac: 25, topic: 'Тепловой / Солнечный удар' },
+            'Недельный отчет': { points: 300, pmp: 0, vac: 0, topic: '—' }
         };
 
-        // === Инициализация таблицы ===
-        const tb = document.querySelector("#tbl tbody");
-        // Функция рендера таблицы (вызывается только один раз при загрузке и при сбросе)
+        const REMARK_BUTTONS = [
+            { text: '- ПМП выполненные на территории больниц и в палатах в зачет нормы не идут', label: '🏥 ПМП в больницах' },
+            { text: '- При заполнении отчета не трогайте не задействованные строчки (не нужно ставить прочерки)',
+                label: '📄 Не трогать строчки' },
+            { text: '- В последующих отчетах разделяйте ПМП сделанные в дневное и ночное время в разные папки',
+                label: '📁 Разделять ПМП' },
+            { text: '- Выдача таблеток в зачет не идёт', label: '💊 Таблетки не в зачет' },
+            { text: '- В последующих отчетах разделяйте вакцинации сделанные в PB/SH и ELS в разные папки',
+                label: '💉 Разделять вакцинации' },
+            { text: '- Скриншоты, сделанные до вашего последнего повышения, в зачет не идут', label: '📸 Скриншоты до повышения' },
+            { text: '- Много ПМП выполнено с выключенной боди-камерой', label: '🎥 Без боди-камеры' },
+            { text: '- Когда делаете скриншот вакцины делайте в кабинете, не выходя в коридор', label: '💉 Скриншот вне кабинета' },
+            { text: '- Прикрепите ссылку на сданный устный экзамен', label: '📚 Нет экзамена' },
+            { text: '- У вас есть активное взыскание, при активном взыскании премия не дается', label: '⚠️ WARN (взыскание)' }
+        ];
+
+        // ============================================================
+        //  DOM REFS
+        // ============================================================
+        const $ = id => document.getElementById(id);
+        const qs = (sel, ctx = document) => ctx.querySelector(sel);
+        const qsa = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
+
+        const fullname = $('fullname');
+        const staticId = $('static');
+        const seniority = $('seniority');
+        const joinDate = $('joinDate');
+        const promo = $('promo');
+        const topic = $('topic');
+        const exam = $('exam');
+        const penalty13 = $('penalty13');
+        const penalty23 = $('penalty23');
+        const botNotWorking = $('botNotWorking');
+        const vacToPmp = $('vacToPmp');
+        const pmpToVac = $('pmpToVac');
+        const extra = $('extra');
+        const remarks = $('remarks');
+        const out = $('out');
+        const tableBody = $('tableBody');
+        const visualReport = $('visualReport');
+        const copyBtn = $('copyBtn');
+        const statusDot = $('statusDot');
+        const statusText = $('statusText');
+        const saveStatus = $('saveStatus');
+        const offlineNotification = $('offlineNotification');
+
+        // ============================================================
+        //  OFFLINE / ONLINE МЕНЕДЖЕР
+        // ============================================================
+        let isOnline = navigator.onLine;
+
+        function updateOnlineStatus() {
+            isOnline = navigator.onLine;
+            if (isOnline) {
+                statusDot.className = 'dot online';
+                statusText.textContent = 'Online';
+                offlineNotification.classList.remove('show');
+                syncOfflineData();
+            } else {
+                statusDot.className = 'dot offline';
+                statusText.textContent = 'Offline';
+                offlineNotification.classList.add('show');
+            }
+        }
+
+        let offlineQueue = [];
+
+        function syncOfflineData() {
+            if (isOnline && offlineQueue.length > 0) {
+                console.log('🔄 Синхронизация оффлайн данных:', offlineQueue);
+                offlineQueue = [];
+                updateSaveStatus('✅ Данные синхронизированы');
+            }
+        }
+
+        window.addEventListener('online', () => {
+            updateOnlineStatus();
+            updateSaveStatus('🔄 Синхронизация...');
+            setTimeout(() => updateSaveStatus('💾 Данные сохранены'), 1000);
+        });
+        window.addEventListener('offline', updateOnlineStatus);
+
+        // ============================================================
+        //  СОХРАНЕНИЕ СОСТОЯНИЯ
+        // ============================================================
+        let saveTimeout = null;
+        let lastSavedState = '';
+
+        function captureState() {
+            const tableInputs = qsa('#tbl input').map(inp => inp.value);
+            return {
+                fullname: fullname.value,
+                static: staticId.value,
+                seniority: seniority.value,
+                joinDate: joinDate.value,
+                promo: promo.value,
+                exam: exam.checked,
+                penalty13: penalty13.checked,
+                penalty23: penalty23.checked,
+                botNotWorking: botNotWorking.checked,
+                vacToPmp: vacToPmp.value,
+                pmpToVac: pmpToVac.value,
+                extra: extra.value,
+                remarks: remarks.value,
+                tableInputs: tableInputs,
+                timestamp: Date.now()
+            };
+        }
+
+        function restoreState(state) {
+            if (!state) return;
+            fullname.value = state.fullname || '';
+            staticId.value = state.static || '';
+            seniority.value = state.seniority || '';
+            joinDate.value = state.joinDate || '';
+            promo.value = state.promo || '3→4';
+            exam.checked = state.exam || false;
+            penalty13.checked = state.penalty13 || false;
+            penalty23.checked = state.penalty23 || false;
+            botNotWorking.checked = state.botNotWorking || false;
+            vacToPmp.value = state.vacToPmp || 0;
+            pmpToVac.value = state.pmpToVac || 0;
+            extra.value = state.extra || 0;
+            remarks.value = state.remarks || '';
+
+            const inputs = qsa('#tbl input');
+            if (state.tableInputs && state.tableInputs.length === inputs.length) {
+                inputs.forEach((inp, i) => {
+                    inp.value = state.tableInputs[i] || 0;
+                });
+            }
+
+            topic.textContent = NORMS[promo.value]?.topic || '—';
+            toggleVisibility();
+            updateAll();
+        }
+
+        function saveState() {
+            const state = captureState();
+            const stateStr = JSON.stringify(state);
+
+            if (stateStr === lastSavedState) return;
+
+            try {
+                localStorage.setItem('pmCalculatorState', stateStr);
+                lastSavedState = stateStr;
+                updateSaveStatus('💾 Сохранено');
+            } catch (e) {
+                console.warn('Не удалось сохранить данные:', e);
+                updateSaveStatus('⚠️ Ошибка сохранения');
+            }
+        }
+
+        function updateSaveStatus(text) {
+            saveStatus.textContent = text;
+            saveStatus.classList.toggle('saved', text.includes('Сохранено') || text.includes('синхронизированы'));
+        }
+
+        function debounceSave() {
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(saveState, 1000);
+        }
+
+        // ============================================================
+        //  TABLE RENDER
+        // ============================================================
         function renderTable() {
-            // Используем actionsPromo как основу (они одинаковы для всех режимов)
-            const actions = actionsPromo;
-            tb.innerHTML = '';
-            actions.forEach((a, i) => {
-                tb.insertAdjacentHTML("beforeend",
-                    `<tr data-i="${i}">
-                        <td>${a[0]}</td>
+            tableBody.innerHTML = ACTIONS.map((a, i) => `
+                    <tr data-i="${i}">
+                        <td>${a.name}</td>
                         <td><input type="number" value="0" class="t" min="0"></td>
                         <td><input type="number" value="0" class="r" min="0"></td>
-                        <td><input type="number" value="0" class="bodi-input" data-row="${i}" min="0" style="width:60px; text-align:center;"></td>
+                        <td><input type="number" value="0" class="bodi-input" min="0" style="width:60px;text-align:center;"></td>
                         <td class="acc">0</td>
                         <td class="pts">0</td>
-                    </tr>`
-                );
-            });
-            // Подписываем события на все поля ввода таблицы
-            document.querySelectorAll('#tbl input').forEach(input => {
-                input.addEventListener('input', function() {
-                    updateBodiRemarks();
-                    calcAndRender();
-                });
-                input.addEventListener('change', function() {
-                    updateBodiRemarks();
-                    calcAndRender();
-                });
-            });
-            // Отдельно подписываем боди-поля
-            document.querySelectorAll('.bodi-input').forEach(input => {
-                input.addEventListener('input', function() {
-                    updateBodiRemarks();
-                    calcAndRender();
+                    </tr>
+                `).join('');
+
+            qsa('#tbl input').forEach(inp => {
+                inp.addEventListener('input', () => {
+                    debounceSave();
+                    updateAll();
                 });
             });
         }
 
-        // === Функция пересчета и рендера (вызывается при любом изменении) ===
-        function calcAndRender() {
-            updateTableCalculations();
-            renderDashboard();
-        }
+        // ============================================================
+        //  REMARK BUTTONS
+        // ============================================================
+        function renderRemarkButtons() {
+            const container = $('remarkButtons');
+            container.innerHTML = REMARK_BUTTONS.map(b => `
+                    <button type="button" class="remark-btn" data-text="${b.text}">${b.label}</button>
+                `).join('');
 
-        // === Обновление расчетов в таблице (принято, баллы) ===
-        function updateTableCalculations() {
-            const isWeekly = document.getElementById('promo').value === 'Недельный отчет';
-            const actions = isWeekly ? actionsFull : actionsPromo;
-            [...tb.rows].forEach((row, i) => {
-                let t = +row.querySelector(".t").value || 0;
-                let r = +row.querySelector(".r").value || 0;
-                row.classList.toggle("error", r > t);
-                let a = t - r;
-                if (a < 0) a = 0;
-                let p = a * actions[i][1];
-                row.querySelector(".acc").textContent = a;
-                row.querySelector(".pts").textContent = p;
-            });
-        }
-
-        // === Управление видимостью выслуги лет ===
-        function toggleSeniority() {
-            const promo = document.getElementById('promo');
-            const group = document.getElementById('seniority-group');
-            if (promo.value === 'Недельный отчет') {
-                group.classList.remove('hidden');
-            } else {
-                group.classList.add('hidden');
-                document.getElementById('seniority').value = '';
-            }
-        }
-
-        // === Управление видимостью элементов для недельного отчета ===
-        function toggleWeeklyView() {
-            const isWeekly = document.getElementById('promo').value === 'Недельный отчет';
-
-            document.getElementById('exam-topic-group').style.display = isWeekly ? 'none' : '';
-            document.getElementById('exam-checkbox-group').style.display = isWeekly ? 'none' : '';
-            document.getElementById('penalty-group').style.display = isWeekly ? 'none' : '';
-            document.getElementById('botNotWorking-group').style.display = isWeekly ? 'none' : '';
-
-            // Управление видимостью полей замен: скрываем оба поля (вакцины->пмп и пмп->вакцины)
-            const grid = document.getElementById('replacements-grid');
-            if (grid) {
-                const children = grid.children;
-                if (children.length >= 2) {
-                    if (isWeekly) {
-                        children[0].style.display = 'none';
-                        children[1].style.display = 'none';
+            container.querySelectorAll('.remark-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const text = this.dataset.text;
+                    const lines = remarks.value.split('\n').filter(l => l.trim());
+                    const idx = lines.indexOf(text);
+                    if (idx === -1) {
+                        lines.push(text);
+                        this.classList.add('active');
                     } else {
-                        children[0].style.display = '';
-                        children[1].style.display = '';
+                        lines.splice(idx, 1);
+                        this.classList.remove('active');
                     }
-                }
-            }
-
-            // Контейнер доп. баллов всегда виден, но для недельного отчета оставляем как есть
-            // (уже display: flex по умолчанию)
-
-            // Показываем/скрываем кнопку WARN
-            const warnBtn = document.querySelector('.weekly-warn');
-            if (warnBtn) {
-                if (isWeekly) {
-                    warnBtn.classList.remove('hidden');
-                } else {
-                    warnBtn.classList.add('hidden');
-                    // Если кнопка была активна, снимаем активность (удаляем из замечаний)
-                    if (warnBtn.classList.contains('active')) {
-                        const text = warnBtn.dataset.text;
-                        const remarks = document.getElementById('remarks');
-                        let lines = remarks.value.split('\n').filter(line => line.trim() !== '');
-                        lines = lines.filter(line => line !== text);
-                        remarks.value = lines.join('\n');
-                        warnBtn.classList.remove('active');
-                        remarks.dispatchEvent(new Event('input'));
-                    }
-                }
-            }
-
-            if (isWeekly) {
-                // Обнуляем специфичные для повышения поля
-                document.getElementById('exam').checked = false;
-                document.getElementById('penalty13').checked = false;
-                document.getElementById('penalty23').checked = false;
-                document.getElementById('botNotWorking').checked = false;
-                document.getElementById('vacToPmp').value = 0;
-                document.getElementById('pmpToVac').value = 0;
-            }
-
-            // Таблицу не пересоздаём, только обновляем расчёты
-            updateBodiRemarks();
-            calcAndRender();
-        }
-
-        document.getElementById('promo').addEventListener('change', function() {
-            toggleSeniority();
-            toggleWeeklyView();
-            document.getElementById('topic').textContent = norms[this.value]?.topic || "—";
-        });
-
-        // === Подсчет общего количества скриншотов без боди ===
-        function getTotalBodi() {
-            let total = 0;
-            document.querySelectorAll('.bodi-input').forEach(inp => {
-                total += +inp.value || 0;
-            });
-            return total;
-        }
-
-        // === Обновление замечаний на основе боди-значений ===
-        function updateBodiRemarks() {
-            const total = getTotalBodi();
-            const remarks = document.getElementById('remarks');
-            let lines = remarks.value.split('\n').filter(line => line.trim() !== '');
-            const pattern = /^- Сделано \d+ скриншотов? без боди-камеры.*$/i;
-            const existingIndex = lines.findIndex(line => pattern.test(line.trim()));
-
-            if (total > 5) {
-                const newLine = `- Сделано ${total} скриншотов без боди-камеры`;
-                if (existingIndex !== -1) {
-                    lines[existingIndex] = newLine;
-                } else {
-                    lines.push(newLine);
-                }
-            } else {
-                if (existingIndex !== -1) {
-                    lines.splice(existingIndex, 1);
-                }
-            }
-            remarks.value = lines.join('\n');
-            remarks.dispatchEvent(new Event('input'));
-        }
-
-        // === Обработка кнопок-замечаний ===
-        document.querySelectorAll('.remark-btn').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                const text = this.dataset.text;
-                const remarks = document.getElementById('remarks');
-                let lines = remarks.value.split('\n').filter(line => line.trim() !== '');
-                if (!lines.includes(text)) {
-                    lines.push(text);
                     remarks.value = lines.join('\n');
-                    this.classList.add('active');
-                } else {
-                    lines = lines.filter(line => line !== text);
-                    remarks.value = lines.join('\n');
-                    this.classList.remove('active');
-                }
-                remarks.dispatchEvent(new Event('input'));
-                calcAndRender();
-            });
-        });
-
-        function syncRemarkButtons() {
-            const remarksText = document.getElementById('remarks').value;
-            document.querySelectorAll('.remark-btn').forEach(btn => {
-                const text = btn.dataset.text;
-                if (remarksText.includes(text)) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
-                }
+                    remarks.dispatchEvent(new Event('input'));
+                    debounceSave();
+                    updateAll();
+                });
             });
         }
-        document.getElementById('remarks').addEventListener('input', syncRemarkButtons);
 
-        // === Основная функция расчёта ===
-        function calc() {
-            const isWeekly = document.getElementById('promo').value === 'Недельный отчет';
-            const actions = isWeekly ? actionsFull : actionsPromo;
+        // ============================================================
+        //  STATE & CALC
+        // ============================================================
+        function isWeekly() {
+            return promo.value === 'Недельный отчет';
+        }
+
+        function getNorm() {
+            return NORMS[promo.value] || NORMS['3→4'];
+        }
+
+        function getBodiTotal() {
+            return qsa('.bodi-input').reduce((sum, inp) => sum + (+inp.value || 0), 0);
+        }
+
+        function calcResults() {
+            const rows = qsa('#tbl tbody tr');
+            const actions = ACTIONS;
             let points = 0,
                 pmp = 0,
                 vac = 0,
-                error = false;
+                hasError = false;
 
-            [...tb.rows].forEach((row, i) => {
-                let t = +row.querySelector(".t").value || 0;
-                let r = +row.querySelector(".r").value || 0;
-                if (r > t) error = true;
-                let a = t - r;
-                if (a < 0) a = 0;
-                let p = a * actions[i][1];
-                points += p;
-                if (i === 0 || i === 1) pmp += a;
-                if (i === 3 || i === 4) vac += a;
+            rows.forEach((row, i) => {
+                const t = +row.querySelector('.t').value || 0;
+                const r = +row.querySelector('.r').value || 0;
+                if (r > t) hasError = true;
+                const accepted = Math.max(0, t - r);
+                const pts = accepted * actions[i].points;
+                points += pts;
+                if (i === 0 || i === 1) pmp += accepted;
+                if (i === 3 || i === 4) vac += accepted;
+                row.querySelector('.acc').textContent = accepted;
+                row.querySelector('.pts').textContent = pts;
+                row.classList.toggle('error', r > t);
             });
 
-            let vp = +vacToPmp.value || 0;
-            let pv = +pmpToVac.value || 0;
-
-            let vacFromPmp = Math.floor(pv / 5);
+            const vp = +vacToPmp.value || 0;
+            const pv = +pmpToVac.value || 0;
+            const vacFromPmp = Math.floor(pv / 5);
             vac += vacFromPmp;
             points += vacFromPmp * 3;
             pmp += vp;
             points += vp * 2;
 
-            // Доп. баллы добавляем для всех типов отчетов
-            points += (+extra.value || 0);
+            points += +extra.value || 0;
 
-            let n = norms[promo.value] || { points: 1, pmp: 1, vac: 1 };
-            return { points, pmp, vac, error, n };
+            const norm = getNorm();
+            return { points, pmp, vac, hasError, norm, totalBodi: getBodiTotal() };
         }
 
-        // === Рендер дашборда ===
-        function renderDashboard() {
-            updateTableCalculations();
-            const s = calc();
-            const isWeekly = promo.value === "Недельный отчет";
-            const totalBodi = getTotalBodi();
-            let fail = [];
-            if (penalty13.checked || penalty23.checked) fail.push("⚠️ Имеются активные взыскания");
-            if (s.error) fail.push("❌ Ошибки в таблице (заявлено меньше, чем не принято)");
-            if (!exam.checked) fail.push("❌ Экзамен не сдан");
-            if (s.points < s.n.points) fail.push("❌ Недостаточно баллов (минимум " + s.n.points + ")");
-            if (s.pmp < s.n.pmp) fail.push("❌ Недостаточно ПМП (нужно " + s.n.pmp + ")");
-            if (s.vac < s.n.vac) fail.push("❌ Недостаточно вакцинаций (нужно " + s.n.vac + ")");
-            if (totalBodi > 5) fail.push("❌ Сделано " + totalBodi + " скриншотов без боди-камеры (максимум 5)");
+        function getFailures(result) {
+            const { points, pmp, vac, hasError, norm, totalBodi } = result;
+            const isWeek = isWeekly();
+            const failures = [];
 
-            let verdictOk = false;
-            if (isWeekly) {
-                verdictOk = s.points >= 300 && totalBodi <= 5;
-            } else {
-                verdictOk = fail.length === 0;
+            if (!staticId.value.trim()) failures.push('Не указан статический ID персонажа');
+
+            if (isWeek) {
+                if (!joinDate.value) failures.push('Не указана дата вступления во фракцию');
+                if (points < 300) failures.push('Недостаточно баллов (минимум 300)');
+                if (totalBodi > 5) failures.push(`Сделано ${totalBodi} скриншотов без боди-камеры (максимум 5)`);
+                return failures;
             }
 
-            const container = document.getElementById('visualReport');
+            if (penalty13.checked || penalty23.checked) failures.push('Имеются активные взыскания');
+            if (!exam.checked) failures.push('Экзамен не сдан');
+            if (hasError) failures.push('Ошибки в таблице (заявлено меньше, чем не принято)');
+            if (points < norm.points) failures.push(`Недостаточно баллов (минимум ${norm.points})`);
+            if (pmp < norm.pmp) failures.push(`Недостаточно ПМП (нужно ${norm.pmp})`);
+            if (vac < norm.vac) failures.push(`Недостаточно вакцинаций (нужно ${norm.vac})`);
+            if (totalBodi > 5) failures.push(`Сделано ${totalBodi} скриншотов без боди-камеры (максимум 5)`);
+
+            return failures;
+        }
+
+        // ============================================================
+        //  RENDER DASHBOARD
+        // ============================================================
+        function renderDashboard() {
+            const result = calcResults();
+            const isWeek = isWeekly();
+            const failures = getFailures(result);
+            const verdictOk = failures.length === 0 && staticId.value.trim() && (isWeek ? true : exam.checked && !penalty13
+                .checked && !penalty23.checked);
+            const { points, pmp, vac, norm, totalBodi } = result;
+
             let html = '';
 
             html += `<div class="report-header">
-                <div class="name">${fullname.value || '—'}</div>
-                <div class="static">${static.value ? 'Статик: ' + static.value : '—'}</div>
-            </div>`;
+                    <div class="name">${fullname.value || '—'}</div>
+                    <div class="static">${staticId.value ? 'Статик: ' + staticId.value : '—'}</div>
+                </div>`;
 
-            if (isWeekly) {
+            if (isWeek) {
                 html += `<div style="margin-bottom:16px;color:#b3d9ff;font-size:1.2rem;font-weight:500;">📋 Недельный отчёт</div>`;
-                if (seniority.value) {
-                    html += `<div class="report-category"><span class="label">⏳ Выслуга лет</span><span class="value">${seniority.value}</span></div>`;
+                if (joinDate.value) {
+                    const dateObj = new Date(joinDate.value + 'T00:00:00');
+                    const formattedDate = dateObj.toLocaleDateString('ru-RU', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric'
+                    });
+                    html +=
+                        `<div class="report-category"><span class="label">📅 Дата вступления</span><span class="value">${formattedDate}</span></div>`;
                 }
-                html += `<div class="report-category"><span class="label">⭐ Баллы</span><span class="value">${s.points}</span></div>`;
-                html += `<div class="report-category"><span class="label">☀️ ПМП день</span><span class="value">${tb.rows[0]?.querySelector(".acc")?.textContent || 0}</span></div>`;
-                html += `<div class="report-category"><span class="label">🌙 ПМП ночь</span><span class="value">${tb.rows[1]?.querySelector(".acc")?.textContent || 0}</span></div>`;
-                html += `<div class="report-category"><span class="label">🏙️ Вакцинации город</span><span class="value">${tb.rows[3]?.querySelector(".acc")?.textContent || 0}</span></div>`;
-                html += `<div class="report-category"><span class="label">🌍 Вакцинации округ</span><span class="value">${tb.rows[4]?.querySelector(".acc")?.textContent || 0}</span></div>`;
-                html += `<div class="report-category"><span class="label">🎥 Без боди</span><span class="value">${totalBodi}</span></div>`;
+                html += `<div class="report-category"><span class="label">⭐ Баллы</span><span class="value">${points}</span></div>`;
+                const rows = qsa('#tbl tbody tr');
+                html +=
+                    `<div class="report-category"><span class="label">☀️ ПМП день</span><span class="value">${rows[0]?.querySelector('.acc')?.textContent || 0}</span></div>`;
+                html +=
+                    `<div class="report-category"><span class="label">🌙 ПМП ночь</span><span class="value">${rows[1]?.querySelector('.acc')?.textContent || 0}</span></div>`;
+                html +=
+                    `<div class="report-category"><span class="label">🏙️ Вакцинации город</span><span class="value">${rows[3]?.querySelector('.acc')?.textContent || 0}</span></div>`;
+                html +=
+                    `<div class="report-category"><span class="label">🌍 Вакцинации округ</span><span class="value">${rows[4]?.querySelector('.acc')?.textContent || 0}</span></div>`;
+                html +=
+                    `<div class="report-category"><span class="label">🎥 Без боди</span><span class="value">${totalBodi}</span></div>`;
                 const extraVal = +extra.value || 0;
                 if (extraVal > 0) {
-                    html += `<div class="report-category"><span class="label">⭐ Доп. баллы</span><span class="value">${extraVal}</span></div>`;
+                    html +=
+                        `<div class="report-category"><span class="label">⭐ Доп. баллы</span><span class="value">${extraVal}</span></div>`;
                 }
-                html += `<div class="report-total">🏆 ИТОГОВЫЙ БАЛЛ: <span>${s.points}</span></div>`;
-                if (!verdictOk) {
+                html += `<div class="report-total">🏆 ИТОГОВЫЙ БАЛЛ: <span>${points}</span></div>`;
+                if (!verdictOk && failures.length > 0) {
                     html += `<div class="report-errors"><div class="label">❌ Ошибки / недочеты</div><ul>`;
-                    if (s.points < 300) html += `<li>Недостаточно баллов (минимум 300)</li>`;
-                    if (totalBodi > 5) html += `<li>Сделано ${totalBodi} скриншотов без боди-камеры (максимум 5)</li>`;
+                    failures.forEach(f => { html += `<li>${f}</li>`; });
                     html += `</ul></div>`;
-                } else {
+                } else if (verdictOk) {
                     html += `<div class="report-ok">✅ Отчёт одобрен</div>`;
                 }
             } else {
-                html += `<div style="margin-bottom:16px;color:#b3d9ff;font-size:1.2rem;font-weight:500;">📈 Повышение: ${promo.value || '—'}</div>`;
-                html += `<div class="report-category"><span class="label">📖 Тема экзамена</span><span class="value">${document.getElementById('topic').textContent}</span></div>`;
-                html += `<div class="report-category"><span class="label">✅ Экзамен</span><span class="value">${exam.checked ? '✅ Сдан' : '❌ Не сдан'}</span></div>`;
-                html += `<div class="report-category"><span class="label">🤖 Бот не работает</span><span class="value">${document.getElementById('botNotWorking').checked ? '✅ Да' : '❌ Нет'}</span></div>`;
+                html +=
+                    `<div style="margin-bottom:16px;color:#b3d9ff;font-size:1.2rem;font-weight:500;">📈 Повышение: ${promo.value}</div>`;
+                html +=
+                    `<div class="report-category"><span class="label">📖 Тема экзамена</span><span class="value">${topic.textContent}</span></div>`;
+                html +=
+                    `<div class="report-category"><span class="label">✅ Экзамен</span><span class="value">${exam.checked ? '✅ Сдан' : '❌ Не сдан'}</span></div>`;
+                html +=
+                    `<div class="report-category"><span class="label">🤖 Бот не работает</span><span class="value">${botNotWorking.checked ? '✅ Да' : '❌ Нет'}</span></div>`;
 
-                const pointsPct = Math.min(100, s.n.points ? (s.points / s.n.points) * 100 : 0);
-                const pmpPct = Math.min(100, s.n.pmp ? (s.pmp / s.n.pmp) * 100 : 0);
-                const vacPct = Math.min(100, s.n.vac ? (s.vac / s.n.vac) * 100 : 0);
+                const ptsPct = Math.min(100, norm.points ? (points / norm.points) * 100 : 0);
+                const pmpPct = Math.min(100, norm.pmp ? (pmp / norm.pmp) * 100 : 0);
+                const vacPct = Math.min(100, norm.vac ? (vac / norm.vac) * 100 : 0);
 
                 html += `<div style="margin:16px 0;">`;
-                html += `<div class="progress-label"><span>⭐ Баллы</span><span class="val">${s.points} / ${s.n.points}</span></div>`;
-                html += `<div class="progress"><div class="fill" style="width:${pointsPct}%;"></div></div>`;
-                html += `<div class="progress-label"><span>🚑 ПМП</span><span class="val">${s.pmp} / ${s.n.pmp}</span></div>`;
+                html +=
+                    `<div class="progress-label"><span>⭐ Баллы</span><span class="val">${points} / ${norm.points}</span></div>`;
+                html += `<div class="progress"><div class="fill" style="width:${ptsPct}%;"></div></div>`;
+                html +=
+                    `<div class="progress-label"><span>🚑 ПМП</span><span class="val">${pmp} / ${norm.pmp}</span></div>`;
                 html += `<div class="progress"><div class="fill" style="width:${pmpPct}%;"></div></div>`;
-                html += `<div class="progress-label"><span>💉 Вакцинации</span><span class="val">${s.vac} / ${s.n.vac}</span></div>`;
+                html +=
+                    `<div class="progress-label"><span>💉 Вакцинации</span><span class="val">${vac} / ${norm.vac}</span></div>`;
                 html += `<div class="progress"><div class="fill" style="width:${vacPct}%;"></div></div>`;
                 html += `</div>`;
 
                 const extraVal = +extra.value || 0;
                 if (extraVal > 0) {
-                    html += `<div class="report-category"><span class="label">⭐ Доп. баллы</span><span class="value">${extraVal}</span></div>`;
+                    html +=
+                        `<div class="report-category"><span class="label">⭐ Доп. баллы</span><span class="value">${extraVal}</span></div>`;
                 }
 
-                html += `<div class="report-total">🏆 ИТОГОВЫЙ БАЛЛ: <span>${s.points}</span></div>`;
+                html += `<div class="report-total">🏆 ИТОГОВЫЙ БАЛЛ: <span>${points}</span></div>`;
 
                 if (verdictOk) {
                     html += `<div class="report-ok">✅ Отчёт одобрен — можно подавать заявление на повышение</div>`;
-                } else {
+                } else if (failures.length > 0) {
                     html += `<div class="report-errors"><div class="label">❌ Ошибки / недочеты</div><ul>`;
-                    fail.forEach(f => { html += `<li>${f}</li>`; });
+                    failures.forEach(f => { html += `<li>${f}</li>`; });
                     html += `</ul></div>`;
                 }
             }
@@ -1025,272 +1127,307 @@
                 html += `<div class="report-remarks"><strong>📝 Замечания:</strong> ${remarksText}</div>`;
             }
 
-            container.innerHTML = html;
+            visualReport.innerHTML = html;
         }
 
-        // === Генерация текстового отчёта ===
-        function generateFullReport(e) {
-            if (e) e.preventDefault();
-            updateTableCalculations();
-            const s = calc();
-            const isWeekly = promo.value === "Недельный отчет";
-            const totalBodi = getTotalBodi();
-            const extraVal = +extra.value || 0;
+        // ============================================================
+        //  GENERATE REPORT TEXT
+        // ============================================================
+        window.generateReport = function() {
+            const result = calcResults();
+            const isWeek = isWeekly();
+            const failures = getFailures(result);
+            const verdictOk = failures.length === 0 && staticId.value.trim() && (isWeek ? true : exam.checked && !penalty13
+                .checked && !penalty23.checked);
+            const { points, pmp, vac, norm, totalBodi } = result;
+            const rows = qsa('#tbl tbody tr');
 
-            if (isWeekly) {
-                const staticId = static.value.trim();
-                const seniorityVal = seniority.value.trim();
-                const nameDisplay = fullname.value.trim() || '—';
-                const staticDisplay = staticId || '—';
-                const seniorityDisplay = seniorityVal || '—';
+            let lines = [];
+            const name = fullname.value.trim() || '—';
+            const stat = staticId.value.trim() || '—';
 
-                let reportLines = [];
-                reportLines.push(`*** Работник: *** *${nameDisplay}*`);
-                reportLines.push(`*** Статик: *** *${staticDisplay}*`);
-                reportLines.push(`*** Выслуга лет: *** *${seniorityDisplay}*`);
-                reportLines.push('# Недельный отчет :pencil: #');
-                reportLines.push('');
+            lines.push(`*** Работник: *** *${name}*`);
+            lines.push(`*** Статик: *** *${stat}*`);
 
-                let failReasons = [];
-
-                if (!staticId) {
-                    failReasons.push("Не указан статический ID персонажа");
+            if (isWeek) {
+                let dateStr = '—';
+                if (joinDate.value) {
+                    const dateObj = new Date(joinDate.value + 'T00:00:00');
+                    dateStr = dateObj.toLocaleDateString('ru-RU', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric'
+                    });
                 }
-
-                if (!seniorityVal) {
-                    failReasons.push("Не указана выслуга лет");
+                lines.push(`*** Дата вступления: *** *${dateStr}*`);
+                lines.push('# Недельный отчет :pencil: #');
+                lines.push('');
+                lines.push(`## Баллы: ${points} ##`);
+                lines.push(`> ПМП день: ${rows[0]?.querySelector('.acc')?.textContent || 0}`);
+                lines.push(`> ПМП ночь: ${rows[1]?.querySelector('.acc')?.textContent || 0}`);
+                lines.push(`> Вакцинации город: ${rows[3]?.querySelector('.acc')?.textContent || 0}`);
+                lines.push(`> Вакцинации округ: ${rows[4]?.querySelector('.acc')?.textContent || 0}`);
+                const extraVal = +extra.value || 0;
+                if (extraVal > 0) lines.push(`> Доп. баллы: ${extraVal}`);
+                lines.push('');
+                lines.push(verdictOk ? '# :white_check_mark: ОТЧЁТ ОДОБРЕН #' : '# :x: ОТЧЁТ ОТКЛОНЁН #');
+                if (!verdictOk && failures.length > 0) {
+                    lines.push('');
+                    failures.forEach(f => lines.push('• ' + f));
                 }
-
-                if (staticId && seniorityVal) {
-                    const approved = s.points >= 300 && totalBodi <= 5;
-                    reportLines.push(`## Баллы: ${s.points} ##`);
-                    reportLines.push(`> ПМП день: ${tb.rows[0]?.querySelector(".acc")?.textContent || 0}`);
-                    reportLines.push(`> ПМП ночь: ${tb.rows[1]?.querySelector(".acc")?.textContent || 0}`);
-                    reportLines.push(`> Вакцинации город: ${tb.rows[3]?.querySelector(".acc")?.textContent || 0}`);
-                    reportLines.push(`> Вакцинации округ: ${tb.rows[4]?.querySelector(".acc")?.textContent || 0}`);
-                    if (extraVal > 0) {
-                        reportLines.push(`> Доп. баллы: ${extraVal}`);
-                    }
-                    reportLines.push('');
-
-                    if (!approved) {
-                        if (s.points < 300) failReasons.push("Недостаточно баллов (минимум 300)");
-                        if (totalBodi > 5) failReasons.push(`Сделано ${totalBodi} скриншотов без боди-камеры (максимум 5)`);
-                    }
-
-                    if (approved) {
-                        reportLines.push('# :white_check_mark: ОТЧЁТ ОДОБРЕН #');
-                    } else {
-                        reportLines.push('# :x: ОТЧЁТ ОТКЛОНЁН #');
-                        reportLines.push('');
-                        const uniqueFail = [...new Set(failReasons)];
-                        uniqueFail.forEach(f => { reportLines.push('• ' + f); });
-                    }
-                } else {
-                    reportLines.push('# :x: ОТЧЁТ ОТКЛОНЁН #');
-                    reportLines.push('');
-                    const uniqueFail = [...new Set(failReasons)];
-                    uniqueFail.forEach(f => { reportLines.push('• ' + f); });
-                }
-
-                const remarksText = remarks.value.trim();
-                let finalRemarks = remarksText ? remarksText.split('\n').filter(l => l.trim()) : [];
-
-                if (!seniorityVal) {
-                    const seniorityNote = "- Выслуга лет — это количество полных недель, которые вы находитесь во фракции";
-                    if (!finalRemarks.includes(seniorityNote)) {
-                        finalRemarks.push(seniorityNote);
-                    }
-                }
-
-                if (finalRemarks.length > 0) {
-                    reportLines.push('');
-                    reportLines.push('```Замечания:');
-                    reportLines.push(finalRemarks.join('\n'));
-                    reportLines.push('```');
-                }
-
-                out.value = reportLines.join('\n');
-                renderDashboard();
-                return;
-            }
-
-            // --- Логика для повышения (НЕ недельный отчет) ---
-            const staticId = static.value.trim();
-            const hasPenalty = penalty13.checked || penalty23.checked;
-            const examPassed = exam.checked;
-
-            let reportLines = [];
-            const nameDisplay = fullname.value.trim() || '—';
-            const staticDisplay = staticId || '—';
-            const promoDisplay = promo.value || '—';
-
-            reportLines.push(`*** Работник: *** *${nameDisplay}*`);
-            reportLines.push(`*** Статик: *** *${staticDisplay}*`);
-            reportLines.push(`*** Повышение: *** *${promoDisplay}*`);
-            reportLines.push('');
-
-            let failReasons = [];
-
-            if (!staticId) {
-                failReasons.push("Не указан статический ID персонажа");
-            }
-
-            if (staticId && hasPenalty) {
-                failReasons.push("Имеются активные взыскания");
-            }
-
-            if (staticId && !hasPenalty && !examPassed) {
-                failReasons.push("Экзамен не сдан");
-            }
-
-            if (staticId && totalBodi > 5) {
-                failReasons.push(`Сделано ${totalBodi} скриншотов без боди-камеры (максимум 5)`);
-            }
-
-            if (staticId && !hasPenalty && examPassed && totalBodi <= 5) {
-                reportLines = [];
-                reportLines.push(`*** Работник: *** *${nameDisplay}*`);
-                reportLines.push(`*** Статик: *** *${staticDisplay}*`);
-                reportLines.push(`*** Повышение: *** *${promoDisplay}*`);
-                reportLines.push('');
-                reportLines.push(`> **Баллы: ${s.points}/${s.n.points}**`);
-                reportLines.push(`> **ПМП: ${s.pmp}/${s.n.pmp}**`);
-                reportLines.push(`> **Вакцинации: ${s.vac}/${s.n.vac}**`);
-                if (extraVal > 0) {
-                    reportLines.push(`> **Доп. баллы: ${extraVal}**`);
-                }
-                reportLines.push('');
-                reportLines.push(`### Экзамен: Сдан  :green_book: ###`);
-                reportLines.push(`***Тема: ${document.getElementById('topic').textContent}***`);
-                reportLines.push('');
-
-                if (s.error) failReasons.push("Ошибки в таблице (заявлено меньше, чем не принято)");
-                if (s.points < s.n.points) failReasons.push("Недостаточно баллов (минимум " + s.n.points + ")");
-                if (s.pmp < s.n.pmp) failReasons.push("Недостаточно ПМП (нужно " + s.n.pmp + ")");
-                if (s.vac < s.n.vac) failReasons.push("Недостаточно вакцинаций (нужно " + s.n.vac + ")");
-            } else if (staticId && !hasPenalty && !examPassed && totalBodi <= 5) {
-                reportLines.push(`### Экзамен: Не сдан  :closed_book: ###`);
-                reportLines.push(`***Тема: ${document.getElementById('topic').textContent}***`);
-                reportLines.push('');
-            }
-
-            const verdictOk = failReasons.length === 0 && staticId && examPassed && !hasPenalty && totalBodi <= 5;
-
-            if (verdictOk) {
-                reportLines.push('# :white_check_mark: ОТЧЁТ ОДОБРЕН #');
-                reportLines.push('');
-                
-                // Определяем ссылку в зависимости от состояния галки "Бот не работает"
-                const botNotWorking = document.getElementById('botNotWorking').checked;
-                const channelId = botNotWorking ? '1518676180964737176' : '1518676182885863437';
-                
-                reportLines.push('*Для повышения на ' + (promo.value.split("→")[1] || "") + ' ранг заполните заявление на повышение в канале* https://discord.com/channels/1482048390119555123/' + channelId);
             } else {
-                reportLines.push('# :x: ОТЧЁТ ОТКЛОНЁН #');
-                reportLines.push('');
-                const uniqueFail = [...new Set(failReasons)];
-                uniqueFail.forEach(f => { reportLines.push('• ' + f); });
+                lines.push(`*** Повышение: *** *${promo.value}*`);
+                lines.push('');
+                lines.push(`> **Баллы: ${points}/${norm.points}**`);
+                lines.push(`> **ПМП: ${pmp}/${norm.pmp}**`);
+                lines.push(`> **Вакцинации: ${vac}/${norm.vac}**`);
+                const extraVal = +extra.value || 0;
+                if (extraVal > 0) lines.push(`> **Доп. баллы: ${extraVal}**`);
+                lines.push('');
+                lines.push(`### Экзамен: ${exam.checked ? 'Сдан :green_book:' : 'Не сдан :closed_book:'} ###`);
+                lines.push(`***Тема: ${topic.textContent}***`);
+                lines.push('');
+
+                if (verdictOk) {
+                    lines.push('# :white_check_mark: ОТЧЁТ ОДОБРЕН #');
+                    lines.push('');
+                    const channelId = botNotWorking.checked ? '1518676180964737176' : '1518676182885863437';
+                    const rank = promo.value.split("→")[1] || "";
+                    lines.push(
+                        `*Для повышения на ${rank} ранг заполните заявление на повышение в канале* https://discord.com/channels/1482048390119555123/${channelId}`
+                        );
+                } else {
+                    lines.push('# :x: ОТЧЁТ ОТКЛОНЁН #');
+                    lines.push('');
+                    if (failures.length > 0) {
+                        failures.forEach(f => lines.push('• ' + f));
+                    }
+                }
             }
 
             const remarksText = remarks.value.trim();
             if (remarksText) {
-                reportLines.push('');
-                reportLines.push('```Замечания:');
-                reportLines.push(remarksText);
-                reportLines.push('```');
+                lines.push('');
+                lines.push('```Замечания:');
+                lines.push(remarksText);
+                lines.push('```');
             }
 
-            out.value = reportLines.join('\n');
+            out.value = lines.join('\n');
             renderDashboard();
-        }
+            saveState();
+        };
 
-        // === Копирование отчёта ===
-        function copyReport(e) {
-            if (e) e.preventDefault();
-            if (!out.value) {
-                generateFullReport();
-            }
+        // ============================================================
+        //  COPY REPORT
+        // ============================================================
+        window.copyReport = function() {
+            if (!out.value) generateReport();
             navigator.clipboard.writeText(out.value).then(() => {
-                const btn = document.getElementById('copyBtn');
-                btn.classList.add('copy-success');
-                btn.textContent = '✅ Скопировано!';
+                copyBtn.classList.add('btn-success');
+                copyBtn.textContent = '✅ Скопировано!';
                 setTimeout(() => {
-                    btn.classList.remove('copy-success');
-                    btn.textContent = '📋 Копировать отчёт';
+                    copyBtn.classList.remove('btn-success');
+                    copyBtn.textContent = '📋 Копировать отчёт';
                 }, 1200);
             }).catch(() => {
-                const btn = document.getElementById('copyBtn');
-                btn.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
-                btn.textContent = '❌ Ошибка';
+                copyBtn.textContent = '❌ Ошибка';
                 setTimeout(() => {
-                    btn.style.background = '';
-                    btn.textContent = '📋 Копировать отчёт';
+                    copyBtn.textContent = '📋 Копировать отчёт';
                 }, 1200);
             });
-        }
+        };
 
-        // === Сброс формы ===
-        function resetForm(e) {
-            if (e) e.preventDefault();
-            fullname.value = "";
-            static.value = "";
-            seniority.value = "";
-            promo.value = "3→4";
-            document.getElementById('topic').textContent = norms["3→4"].topic;
+        // ============================================================
+        //  RESET
+        // ============================================================
+        window.resetForm = function() {
+            fullname.value = '';
+            staticId.value = '';
+            seniority.value = '';
+            joinDate.value = '';
+            promo.value = '3→4';
+            topic.textContent = NORMS['3→4'].topic;
             exam.checked = false;
             penalty13.checked = false;
             penalty23.checked = false;
-            document.getElementById('botNotWorking').checked = false;
-            // Обнуляем таблицу без пересоздания
-            [...tb.rows].forEach(row => {
-                row.querySelector(".t").value = 0;
-                row.querySelector(".r").value = 0;
-                row.querySelector(".bodi-input").value = 0;
-                row.querySelector(".acc").textContent = "0";
-                row.querySelector(".pts").textContent = "0";
-                row.classList.remove("error");
-            });
+            botNotWorking.checked = false;
             vacToPmp.value = 0;
             pmpToVac.value = 0;
             extra.value = 0;
-            remarks.value = "";
-            out.value = "";
-            toggleSeniority();
-            toggleWeeklyView();
-            updateBodiRemarks();
-            calcAndRender();
-            syncRemarkButtons();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
+            remarks.value = '';
+            out.value = '';
 
-        // === Подписка на события для всех полей ===
-        function setupEventListeners() {
-            document.getElementById('fullname').addEventListener('input', renderDashboard);
-            document.getElementById('static').addEventListener('input', renderDashboard);
-            document.getElementById('seniority').addEventListener('input', renderDashboard);
-            document.getElementById('vacToPmp').addEventListener('input', calcAndRender);
-            document.getElementById('pmpToVac').addEventListener('input', calcAndRender);
-            document.getElementById('extra').addEventListener('input', calcAndRender);
-            document.getElementById('exam').addEventListener('change', renderDashboard);
-            document.getElementById('penalty13').addEventListener('change', renderDashboard);
-            document.getElementById('penalty23').addEventListener('change', renderDashboard);
-            document.getElementById('botNotWorking').addEventListener('change', renderDashboard);
-            document.getElementById('remarks').addEventListener('input', function() {
-                syncRemarkButtons();
-                renderDashboard();
+            qsa('#tbl input').forEach(inp => {
+                inp.value = 0;
             });
+            qsa('#tbl .acc').forEach(el => el.textContent = '0');
+            qsa('#tbl .pts').forEach(el => el.textContent = '0');
+            qsa('#tbl tr').forEach(tr => tr.classList.remove('error'));
+
+            qsa('.remark-btn').forEach(btn => btn.classList.remove('active'));
+            toggleVisibility();
+            updateAll();
+            saveState();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        // ============================================================
+        //  TOGGLE VISIBILITY
+        // ============================================================
+        function toggleVisibility() {
+            const week = isWeekly();
+            const seniorityGroup = $('seniority-group');
+            const joinDateGroup = $('join-date-group');
+            const examTopic = $('exam-topic-group');
+            const examCheck = $('exam-checkbox-group');
+            const penaltyGroup = $('penalty-group');
+            const botGroup = $('botNotWorking-group');
+            const replGrid = $('replacements-grid');
+
+            if (week) {
+                seniorityGroup.classList.add('hidden');
+                joinDateGroup.classList.remove('hidden');
+            } else {
+                seniorityGroup.classList.add('hidden');
+                joinDateGroup.classList.add('hidden');
+            }
+
+            examTopic.style.display = week ? 'none' : '';
+            examCheck.style.display = week ? 'none' : '';
+            penaltyGroup.style.display = week ? 'none' : '';
+            botGroup.style.display = week ? 'none' : '';
+
+            if (replGrid) {
+                const children = replGrid.children;
+                if (week) {
+                    children[0].style.display = 'none';
+                    children[1].style.display = 'none';
+                } else {
+                    children[0].style.display = '';
+                    children[1].style.display = '';
+                }
+            }
+
+            const warnBtn = qsa('.remark-btn').find(b => b.dataset.text.includes('взыскание'));
+            if (warnBtn) {
+                warnBtn.classList.toggle('hidden', !week);
+            }
+
+            if (week) {
+                exam.checked = false;
+                penalty13.checked = false;
+                penalty23.checked = false;
+                botNotWorking.checked = false;
+                vacToPmp.value = 0;
+                pmpToVac.value = 0;
+            }
+
+            topic.textContent = getNorm().topic;
         }
 
-        // === Первоначальный рендер ===
-        renderTable(); // создаём таблицу один раз
-        toggleSeniority();
-        toggleWeeklyView(); // применяем начальную видимость
-        document.getElementById('topic').textContent = norms["3→4"].topic;
-        updateBodiRemarks();
-        setupEventListeners();
-        calcAndRender();
-        syncRemarkButtons();
+        // ============================================================
+        //  UPDATE ALL
+        // ============================================================
+        function updateAll() {
+            const totalBodi = getBodiTotal();
+            const lines = remarks.value.split('\n').filter(l => l.trim());
+            const pattern = /^- Сделано \d+ скриншотов? без боди-камеры.*$/i;
+            const idx = lines.findIndex(l => pattern.test(l.trim()));
+
+            if (totalBodi > 5) {
+                const newLine = `- Сделано ${totalBodi} скриншотов без боди-камеры`;
+                if (idx === -1) lines.push(newLine);
+                else if (lines[idx] !== newLine) lines[idx] = newLine;
+            } else {
+                if (idx !== -1) lines.splice(idx, 1);
+            }
+            remarks.value = lines.join('\n');
+
+            const remarksText = remarks.value;
+            qsa('.remark-btn').forEach(btn => {
+                btn.classList.toggle('active', remarksText.includes(btn.dataset.text));
+            });
+
+            calcResults();
+            renderDashboard();
+        }
+
+        // ============================================================
+        //  LOAD SAVED STATE
+        // ============================================================
+        function loadSavedState() {
+            try {
+                const saved = localStorage.getItem('pmCalculatorState');
+                if (saved) {
+                    const state = JSON.parse(saved);
+                    const age = Date.now() - (state.timestamp || 0);
+                    if (age < 7 * 24 * 60 * 60 * 1000) {
+                        restoreState(state);
+                        updateSaveStatus('💾 Загружено из сохранения');
+                        setTimeout(() => updateSaveStatus('💾 Данные сохранены'), 1500);
+                        return true;
+                    }
+                }
+            } catch (e) {
+                console.warn('Не удалось загрузить сохранение:', e);
+            }
+            return false;
+        }
+
+        // ============================================================
+        //  INIT
+        // ============================================================
+        function init() {
+            renderTable();
+            renderRemarkButtons();
+
+            const hasSaved = loadSavedState();
+
+            if (!hasSaved) {
+                toggleVisibility();
+                updateAll();
+            }
+
+            const inputs = [
+                fullname, staticId, seniority, joinDate, exam, penalty13, penalty23,
+                botNotWorking, vacToPmp, pmpToVac, extra, remarks
+            ];
+            inputs.forEach(el => {
+                el.addEventListener('input', () => {
+                    debounceSave();
+                    updateAll();
+                });
+                el.addEventListener('change', () => {
+                    debounceSave();
+                    updateAll();
+                });
+            });
+
+            promo.addEventListener('change', () => {
+                toggleVisibility();
+                debounceSave();
+                updateAll();
+            });
+
+            tableBody.addEventListener('input', () => {
+                debounceSave();
+                updateAll();
+            });
+
+            remarks.addEventListener('input', () => {
+                qsa('.remark-btn').forEach(btn => {
+                    btn.classList.toggle('active', remarks.value.includes(btn.dataset.text));
+                });
+                debounceSave();
+                updateAll();
+            });
+
+            updateOnlineStatus();
+            console.log('✅ Калькулятор загружен. Версия с автосохранением и offline режимом.');
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
     </script>
 
 </body>
